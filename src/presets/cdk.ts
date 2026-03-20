@@ -43,7 +43,7 @@ export const cdkPreset: Preset = {
       },
       {
         placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
-        content: "AWS IaC",
+        content: ", AWS IaC",
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",
