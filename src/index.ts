@@ -50,7 +50,7 @@ async function main(): Promise<void> {
 
   s.stop(t("spinner.stop", { count: result.fileList().length }));
 
-  p.note([`cd ${relPath}`, "bash scripts/setup.sh"].join("\n"), t("nextSteps.title"));
+  p.log.step(`${t("nextSteps.title")}:\n  cd ${relPath}\n  bash scripts/setup.sh`);
 
   p.outro(pc.green(t("outro")));
 }
