@@ -1,16 +1,32 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
+import { parseArgs } from "node:util";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { runWizard } from "./cli.js";
 import { generate } from "./generator.js";
+import { detectLocale, setLocale, t } from "./i18n/index.js";
 import { createDiskWriter } from "./utils.js";
 
 async function main(): Promise<void> {
-  const arg = process.argv[2];
-  const defaultName = arg ? path.basename(arg) : undefined;
-  const parentDir = arg ? path.resolve(process.cwd(), path.dirname(arg)) : process.cwd();
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      lang: { type: "string" },
+    },
+    allowPositionals: true,
+    strict: false,
+  });
+
+  const langFlag = typeof values.lang === "string" ? values.lang : undefined;
+  setLocale(detectLocale(langFlag));
+
+  const positionalArg = positionals[0];
+  const defaultName = positionalArg ? path.basename(positionalArg) : undefined;
+  const parentDir = positionalArg
+    ? path.resolve(process.cwd(), path.dirname(positionalArg))
+    : process.cwd();
   const answers = await runWizard(defaultName);
 
   const outDir = path.resolve(parentDir, answers.projectName);
@@ -18,25 +34,25 @@ async function main(): Promise<void> {
 
   if (fs.existsSync(outDir) && fs.readdirSync(outDir).length > 0) {
     const overwrite = await p.confirm({
-      message: `Directory "${relPath}" already exists and is not empty. Overwrite?`,
+      message: t("overwrite.message", { path: relPath }),
     });
     if (p.isCancel(overwrite) || !overwrite) {
-      p.cancel("Operation cancelled.");
+      p.cancel(t("cancel"));
       process.exit(0);
     }
   }
 
   const s = p.spinner();
-  s.start("Generating project...");
+  s.start(t("spinner.start"));
 
   const writer = createDiskWriter(outDir);
   const result = generate(answers, { writer });
 
-  s.stop(`Generated ${result.fileList().length} files`);
+  s.stop(t("spinner.stop", { count: result.fileList().length }));
 
-  p.note([`cd ${relPath}`, "bash scripts/setup.sh"].join("\n"), "Next steps");
+  p.note([`cd ${relPath}`, "bash scripts/setup.sh"].join("\n"), t("nextSteps.title"));
 
-  p.outro(pc.green("Done! Happy coding."));
+  p.outro(pc.green(t("outro")));
 }
 
 main().catch((err) => {

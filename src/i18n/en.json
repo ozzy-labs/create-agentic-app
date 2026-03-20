@@ -1,0 +1,43 @@
+{
+  "intro": "create-agentic-dev",
+  "cancel": "Operation cancelled.",
+  "wizard": {
+    "projectName": {
+      "message": "Project name",
+      "placeholder": "my-app",
+      "required": "Project name is required.",
+      "invalid": "Invalid project name. Use alphanumeric characters, hyphens, dots, or underscores."
+    },
+    "languages": {
+      "message": "Languages",
+      "hint": "Select languages for your project",
+      "typescript": { "label": "TypeScript" },
+      "python": { "label": "Python" }
+    },
+    "frontend": {
+      "message": "Frontend framework",
+      "hint": "Choose a frontend framework or skip",
+      "none": { "label": "None" },
+      "react": { "label": "React (Vite)", "hint": "forces TypeScript" }
+    },
+    "iac": {
+      "message": "Infrastructure as Code",
+      "hint": "Choose a cloud IaC tool or skip",
+      "none": { "label": "None" },
+      "cdk": { "label": "AWS CDK", "hint": "forces TypeScript" },
+      "cloudformation": { "label": "CloudFormation" },
+      "terraform": { "label": "Terraform" }
+    }
+  },
+  "overwrite": {
+    "message": "Directory \"{{path}}\" already exists and is not empty. Overwrite?"
+  },
+  "spinner": {
+    "start": "Generating project...",
+    "stop": "Generated {{count}} files"
+  },
+  "nextSteps": {
+    "title": "Next steps"
+  },
+  "outro": "Done! Happy coding."
+}
