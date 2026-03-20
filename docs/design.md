@@ -16,8 +16,8 @@
 | # | Question | Type | Options |
 |---|----------|------|---------|
 | 1 | Project name | Text input | — |
-| 2 | Languages | Multi-select | TypeScript / Python |
-| 3 | Frontend framework | Single-select | None / React (Vite) |
+| 2 | Language toolchains | Multi-select | TypeScript / Python |
+| 3 | Frontend app | Single-select | None / React (Vite) |
 | 4 | Infrastructure as Code | Single-select | None / AWS CDK / CloudFormation / Terraform |
 
 ## Presets
@@ -187,7 +187,7 @@ Terraform ──→ tflint
 
 | Element | Notes |
 |---------|-------|
-| Vue | Frontend framework option, to be added when needed |
+| Vue | Frontend app option, to be added when needed |
 | Next.js / Remix | React meta-frameworks; out of scope (app architecture, not dev tooling) |
 
 ## Project Structure

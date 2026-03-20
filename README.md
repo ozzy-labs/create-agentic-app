@@ -19,8 +19,8 @@ The interactive wizard asks 4 questions to configure your project:
 | # | Question | Options |
 |---|----------|---------|
 | 1 | Project name | Text input |
-| 2 | Languages | TypeScript / Python (multi-select) |
-| 3 | Frontend framework | None / React (Vite) |
+| 2 | Language toolchains | TypeScript / Python (multi-select) |
+| 3 | Frontend app | None / React (Vite) |
 | 4 | Infrastructure as Code | None / AWS CDK / CloudFormation / Terraform |
 
 ## Presets
