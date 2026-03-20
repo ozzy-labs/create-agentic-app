@@ -6,9 +6,7 @@ If you discover a security vulnerability in `create-agentic-dev`, please report 
 
 **Do not open a public issue for security vulnerabilities.**
 
-Instead, please email: **<security@example.com>**
-
-> **Note**: Replace this email with an appropriate contact before publishing.
+Instead, please use [GitHub's Private Vulnerability Reporting](https://github.com/ozzy-3/create-agentic-dev/security/advisories/new) to submit your report directly through the repository. This ensures your report is kept private until a fix is available.
 
 ### What to include
 
