@@ -167,10 +167,19 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   for (const [filePath, sections] of markdownSections) {
     const template = allFiles.get(filePath);
     if (template) {
-      let expanded = replaceVariables(expandMarkdown(template, sections), vars);
-      // Remove any remaining unused placeholders
-      expanded = expanded.replaceAll(/<!-- SECTION:\w+ -->\n?/g, "");
+      const expanded = replaceVariables(expandMarkdown(template, sections), vars);
       allFiles.set(filePath, expanded);
+    }
+  }
+
+  // Remove any remaining unused placeholders from all Markdown files
+  // and clean up list items that became content-empty after removal
+  for (const [filePath, content] of allFiles) {
+    if (filePath.endsWith(".md") && content.includes("<!-- SECTION:")) {
+      const cleaned = content
+        .replaceAll(/<!-- SECTION:\w+ -->\n?/g, "")
+        .replaceAll(/^(?:\d+\.|-)\s+\*\*[^*]+\*\*:\s*\n(?=\n|#|$)/gm, "");
+      allFiles.set(filePath, cleaned);
     }
   }
 

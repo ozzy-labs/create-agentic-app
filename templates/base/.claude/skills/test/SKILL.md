@@ -10,10 +10,8 @@ allowed-tools: Bash, AskUserQuestion
 
 ## 手順
 
-1. `node --no-deprecation --import tsx --test tests/**/*.test.ts` で TypeScript テスト実行
-2. `uv run pytest` で Python テスト実行（tests/ にテストが存在する場合）
-3. `cd infra && pnpm test` で CDK インフラテスト実行
-4. 全テスト結果のサマリーを報告する
+<!-- SECTION:TEST_STEPS -->
+1. 全テスト結果のサマリーを報告する
 
 ## 次のアクション提案（スキル完了後）
 
