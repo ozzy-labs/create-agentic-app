@@ -1,0 +1,43 @@
+{
+  "intro": "create-agentic-dev",
+  "cancel": "操作がキャンセルされました。",
+  "wizard": {
+    "projectName": {
+      "message": "プロジェクト名",
+      "placeholder": "my-app",
+      "required": "プロジェクト名は必須です。",
+      "invalid": "プロジェクト名が無効です。英数字、ハイフン、ドット、アンダースコアのみ使用できます。"
+    },
+    "languages": {
+      "message": "言語",
+      "hint": "プロジェクトで使用する言語を選択",
+      "typescript": { "label": "TypeScript" },
+      "python": { "label": "Python" }
+    },
+    "frontend": {
+      "message": "フロントエンドフレームワーク",
+      "hint": "フレームワークを選択（不要なら None）",
+      "none": { "label": "なし" },
+      "react": { "label": "React (Vite)", "hint": "TypeScript が強制されます" }
+    },
+    "iac": {
+      "message": "Infrastructure as Code",
+      "hint": "クラウド IaC ツールを選択（不要なら None）",
+      "none": { "label": "なし" },
+      "cdk": { "label": "AWS CDK", "hint": "TypeScript が強制されます" },
+      "cloudformation": { "label": "CloudFormation" },
+      "terraform": { "label": "Terraform" }
+    }
+  },
+  "overwrite": {
+    "message": "ディレクトリ \"{{path}}\" は既に存在し、空ではありません。上書きしますか？"
+  },
+  "spinner": {
+    "start": "プロジェクトを生成中...",
+    "stop": "{{count}} ファイルを生成しました"
+  },
+  "nextSteps": {
+    "title": "次のステップ"
+  },
+  "outro": "完了！Happy coding."
+}
