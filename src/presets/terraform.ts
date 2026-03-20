@@ -1,0 +1,74 @@
+import type { Preset } from "../types.js";
+import { readTemplateFiles } from "../utils.js";
+
+export const terraformPreset: Preset = {
+  name: "terraform",
+  files: readTemplateFiles("terraform"),
+  merge: {
+    "package.json": {
+      scripts: {
+        "lint:tf": "terraform fmt -check -recursive && tflint",
+      },
+    },
+    ".mise.toml": {
+      tools: {
+        awscli: "2",
+        terraform: "1",
+        tflint: "0.55",
+      },
+    },
+    ".mcp.json": {
+      mcpServers: {
+        "aws-iac": {
+          command: "uvx",
+          args: ["awslabs.aws-iac-mcp@latest"],
+        },
+      },
+    },
+  },
+  markdown: {
+    "CLAUDE.md": [
+      {
+        placeholder: "<!-- SECTION:TECH_STACK -->",
+        content: "- **IaC**: Terraform",
+      },
+      {
+        placeholder: "<!-- SECTION:TECH_STACK_LINTING -->",
+        content: "  - tflint (Terraform)",
+      },
+      {
+        placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
+        content: "- **MCP servers**: AWS IaC — configured in `.mcp.json`",
+      },
+      {
+        placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",
+        content: "*.tf          -> Terraform configuration files",
+      },
+      {
+        placeholder: "<!-- SECTION:LINT_COMMANDS -->",
+        content: "pnpm run lint:tf           # Terraform fmt + tflint",
+      },
+      {
+        placeholder: "<!-- SECTION:CODING_CONVENTIONS -->",
+        content: "- Terraform: must pass `terraform fmt` and tflint",
+      },
+    ],
+    "README.md": [
+      {
+        placeholder: "<!-- SECTION:DIR_STRUCTURE -->",
+        content: "├── *.tf                 # Terraform 設定ファイル",
+      },
+      {
+        placeholder: "<!-- SECTION:ROOT_FILES -->",
+        content: "├── .tflint.hcl          # tflint 設定",
+      },
+      {
+        placeholder: "<!-- SECTION:LINT_COMMANDS -->",
+        content: "| `pnpm run lint:tf` | Terraform フォーマット + tflint |",
+      },
+    ],
+  },
+  ciSteps: {
+    lintSteps: [{ name: "Lint (Terraform)", run: "terraform fmt -check -recursive && tflint" }],
+  },
+};

@@ -435,3 +435,301 @@ describe("generate (react)", () => {
     expect(html).not.toContain("{{projectName}}");
   });
 });
+
+// --- Pattern 5: TypeScript + CDK ---
+describe("generate (cdk)", () => {
+  const answers = makeAnswers({ iac: "cdk" });
+  const result = generate(answers);
+
+  it("forces TypeScript preset inclusion", () => {
+    expect(result.hasFile("biome.json")).toBe(true);
+    expect(result.hasFile("tsconfig.json")).toBe(true);
+  });
+
+  it("includes CDK owned files", () => {
+    expect(result.hasFile("infra/bin/app.ts")).toBe(true);
+    expect(result.hasFile("infra/lib/app-stack.ts")).toBe(true);
+    expect(result.hasFile("infra/test/app.test.ts")).toBe(true);
+    expect(result.hasFile("infra/cdk.json")).toBe(true);
+    expect(result.hasFile("infra/tsconfig.json")).toBe(true);
+    expect(result.hasFile("infra/package.json")).toBe(true);
+    expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);
+    expect(result.hasFile(".github/workflows/cd.yaml")).toBe(true);
+  });
+
+  it("merges CDK tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools.awscli).toBe("2");
+    expect(toml.tools["npm:aws-cdk"]).toBe("2");
+    expect(toml.tools["pipx:cfn-lint"]).toBe("1");
+  });
+
+  it("merges CDK scripts into package.json", () => {
+    const pkg = result.readJson("package.json") as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string>;
+    expect(scripts["cdk:synth"]).toContain("cdk synth");
+    expect(scripts["cdk:deploy"]).toContain("cdk deploy");
+    expect(scripts["test:infra"]).toContain("pnpm test");
+    expect(scripts["lint:cfn"]).toBe("cfn-lint");
+  });
+
+  it("merges aws-iac MCP server into .mcp.json", () => {
+    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
+    expect(mcp.mcpServers["aws-iac"]).toBeDefined();
+    // base servers still present
+    expect(mcp.mcpServers.context7).toBeDefined();
+  });
+
+  it("adds CDK CI steps with correct order (synth before cfn-lint)", () => {
+    const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
+    const jobs = ci.jobs as Record<string, Record<string, unknown>>;
+    const steps = jobs["lint-and-check"].steps as Array<Record<string, unknown>>;
+    const stepNames = steps.map((s) => s.name);
+    expect(stepNames).toContain("Install infra dependencies");
+    expect(stepNames).toContain("CDK synth");
+    expect(stepNames).toContain("Lint (cfn-lint)");
+    expect(stepNames).toContain("Test (CDK)");
+    // CDK synth must run before cfn-lint (synth generates templates that cfn-lint checks)
+    const synthIdx = stepNames.indexOf("CDK synth");
+    const cfnLintIdx = stepNames.indexOf("Lint (cfn-lint)");
+    expect(synthIdx).toBeLessThan(cfnLintIdx);
+    // TypeScript steps still present
+    expect(stepNames).toContain("Lint (Biome)");
+  });
+
+  it("adds infra install to setup.sh", () => {
+    const setup = result.readText("scripts/setup.sh");
+    expect(setup).toContain("cd infra && pnpm install");
+  });
+
+  it("replaces {{projectName}} in CDK templates", () => {
+    const infraPkg = result.readText("infra/package.json");
+    expect(infraPkg).toContain("test-app-infra");
+    expect(infraPkg).not.toContain("{{projectName}}");
+  });
+
+  it("expands CLAUDE.md with CDK sections", () => {
+    const claude = result.readText("CLAUDE.md");
+    expect(claude).toContain("CDK");
+    expect(claude).toContain("cfn-lint");
+    expect(claude).not.toContain("<!-- SECTION:");
+  });
+});
+
+// --- Pattern 6: TypeScript + CloudFormation ---
+describe("generate (cloudformation)", () => {
+  const answers = makeAnswers({ languages: ["typescript"], iac: "cloudformation" });
+  const result = generate(answers);
+
+  it("includes CloudFormation owned files", () => {
+    expect(result.hasFile("infra/template.yaml")).toBe(true);
+    expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);
+    expect(result.hasFile(".github/workflows/cd.yaml")).toBe(true);
+  });
+
+  it("merges cfn-lint into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools.awscli).toBe("2");
+    expect(toml.tools["pipx:cfn-lint"]).toBe("1");
+  });
+
+  it("merges aws-iac MCP server into .mcp.json", () => {
+    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
+    expect(mcp.mcpServers["aws-iac"]).toBeDefined();
+  });
+
+  it("adds cfn-lint CI step", () => {
+    const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
+    const jobs = ci.jobs as Record<string, Record<string, unknown>>;
+    const steps = jobs["lint-and-check"].steps as Array<Record<string, unknown>>;
+    const stepNames = steps.map((s) => s.name);
+    expect(stepNames).toContain("Lint (cfn-lint)");
+  });
+
+  it("does not include CDK or Terraform files", () => {
+    expect(result.hasFile("infra/cdk.json")).toBe(false);
+    expect(result.hasFile(".tflint.hcl")).toBe(false);
+  });
+
+  it("expands CLAUDE.md with CloudFormation sections", () => {
+    const claude = result.readText("CLAUDE.md");
+    expect(claude).toContain("CloudFormation");
+    expect(claude).not.toContain("<!-- SECTION:");
+  });
+});
+
+// --- Pattern 7: TypeScript + Terraform ---
+describe("generate (terraform)", () => {
+  const answers = makeAnswers({ languages: ["typescript"], iac: "terraform" });
+  const result = generate(answers);
+
+  it("includes Terraform owned files", () => {
+    expect(result.hasFile(".tflint.hcl")).toBe(true);
+    expect(result.hasFile(".github/workflows/cd.yaml")).toBe(true);
+  });
+
+  it("merges Terraform tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools.terraform).toBe("1");
+    expect(toml.tools.tflint).toBe("0.55");
+    expect(toml.tools.awscli).toBe("2");
+  });
+
+  it("merges aws-iac MCP server into .mcp.json", () => {
+    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
+    expect(mcp.mcpServers["aws-iac"]).toBeDefined();
+  });
+
+  it("adds tflint CI step", () => {
+    const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
+    const jobs = ci.jobs as Record<string, Record<string, unknown>>;
+    const steps = jobs["lint-and-check"].steps as Array<Record<string, unknown>>;
+    const stepNames = steps.map((s) => s.name);
+    expect(stepNames).toContain("Lint (Terraform)");
+  });
+
+  it("does not include CDK or CloudFormation files", () => {
+    expect(result.hasFile("infra/cdk.json")).toBe(false);
+    expect(result.hasFile("infra/template.yaml")).toBe(false);
+  });
+
+  it("expands CLAUDE.md with Terraform sections", () => {
+    const claude = result.readText("CLAUDE.md");
+    expect(claude).toContain("Terraform");
+    expect(claude).toContain("tflint");
+    expect(claude).not.toContain("<!-- SECTION:");
+  });
+
+  it("includes lint:tf in lint:all", () => {
+    const pkg = result.readJson("package.json") as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string>;
+    expect(scripts["lint:all"]).toContain("pnpm run lint:tf");
+  });
+});
+
+// --- Pattern 8: Full config (TS + Python + React + CDK) ---
+describe("generate (full config)", () => {
+  const answers = makeAnswers({
+    languages: ["typescript", "python"],
+    frontend: "react",
+    iac: "cdk",
+  });
+  const result = generate(answers);
+
+  it("includes all preset files", () => {
+    // TypeScript
+    expect(result.hasFile("biome.json")).toBe(true);
+    // Python
+    expect(result.hasFile("pyproject.toml")).toBe(true);
+    // React
+    expect(result.hasFile("vite.config.ts")).toBe(true);
+    expect(result.hasFile("index.html")).toBe(true);
+    // CDK
+    expect(result.hasFile("infra/bin/app.ts")).toBe(true);
+    expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);
+    expect(result.hasFile(".github/workflows/cd.yaml")).toBe(true);
+  });
+
+  it("merges all tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools["npm:@biomejs/biome"]).toBe("2");
+    expect(toml.tools.python).toBe("3.12");
+    expect(toml.tools["npm:aws-cdk"]).toBe("2");
+  });
+
+  it("merges all MCP servers", () => {
+    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
+    expect(mcp.mcpServers.context7).toBeDefined();
+    expect(mcp.mcpServers.fetch).toBeDefined();
+    expect(mcp.mcpServers["aws-iac"]).toBeDefined();
+  });
+
+  it("lint:all includes all lint scripts", () => {
+    const pkg = result.readJson("package.json") as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string>;
+    expect(scripts["lint:all"]).toContain("pnpm run lint");
+    expect(scripts["lint:all"]).toContain("pnpm run typecheck");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:python");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:cfn");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:secrets");
+  });
+
+  it("CLAUDE.md contains all preset sections", () => {
+    const claude = result.readText("CLAUDE.md");
+    expect(claude).toContain("TypeScript");
+    expect(claude).toContain("Python");
+    expect(claude).toContain("React");
+    expect(claude).toContain("CDK");
+    expect(claude).not.toContain("<!-- SECTION:");
+  });
+});
+
+// --- Pattern 9: Python + Terraform ---
+describe("generate (python + terraform)", () => {
+  const answers = makeAnswers({ languages: ["python"], iac: "terraform" });
+  const result = generate(answers);
+
+  it("includes Python and Terraform files", () => {
+    expect(result.hasFile("pyproject.toml")).toBe(true);
+    expect(result.hasFile(".tflint.hcl")).toBe(true);
+  });
+
+  it("does not include TypeScript files", () => {
+    expect(result.hasFile("biome.json")).toBe(false);
+    expect(result.hasFile("tsconfig.json")).toBe(false);
+  });
+
+  it("merges both preset tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools.python).toBe("3.12");
+    expect(toml.tools.terraform).toBe("1");
+    expect(toml.tools.tflint).toBe("0.55");
+  });
+
+  it("has CI steps from both presets", () => {
+    const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
+    const jobs = ci.jobs as Record<string, Record<string, unknown>>;
+    const steps = jobs["lint-and-check"].steps as Array<Record<string, unknown>>;
+    const stepNames = steps.map((s) => s.name);
+    expect(stepNames).toContain("Lint (Ruff)");
+    expect(stepNames).toContain("Lint (Terraform)");
+  });
+});
+
+// --- Pattern 10: Python + CloudFormation ---
+describe("generate (python + cloudformation)", () => {
+  const answers = makeAnswers({ languages: ["python"], iac: "cloudformation" });
+  const result = generate(answers);
+
+  it("includes Python and CloudFormation files", () => {
+    expect(result.hasFile("pyproject.toml")).toBe(true);
+    expect(result.hasFile("infra/template.yaml")).toBe(true);
+    expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);
+  });
+
+  it("does not include TypeScript or Terraform files", () => {
+    expect(result.hasFile("biome.json")).toBe(false);
+    expect(result.hasFile(".tflint.hcl")).toBe(false);
+  });
+
+  it("merges both preset tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools.python).toBe("3.12");
+    expect(toml.tools["pipx:cfn-lint"]).toBe("1");
+  });
+
+  it("has CI steps from both presets", () => {
+    const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
+    const jobs = ci.jobs as Record<string, Record<string, unknown>>;
+    const steps = jobs["lint-and-check"].steps as Array<Record<string, unknown>>;
+    const stepNames = steps.map((s) => s.name);
+    expect(stepNames).toContain("Lint (Ruff)");
+    expect(stepNames).toContain("Lint (cfn-lint)");
+  });
+
+  it("replaces {{projectName}} in CloudFormation template", () => {
+    const template = result.readText("infra/template.yaml");
+    expect(template).toContain("test-app");
+    expect(template).not.toContain("{{projectName}}");
+  });
+});
