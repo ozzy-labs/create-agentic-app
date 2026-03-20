@@ -28,7 +28,7 @@ src/              # CLI source code
 src/presets/      # Preset logic (merge contributions, dependencies)
 templates/        # Preset file assets (copied as-is to output)
 tests/            # Test files
-docs/             # Design document
+docs/             # Design docs, guides
 ```
 
 See [docs/design.md](docs/design.md) for the full architecture and design decisions.

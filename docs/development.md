@@ -58,8 +58,7 @@ See [Testing Strategy](design.md#testing-strategy) in the design document for th
 
 ### Manual Verification
 
-After making changes to the CLI or templates, verify the generated output by installing
-the CLI locally with `pnpm link`:
+After making changes to the CLI or templates, verify the generated output by installing the CLI locally with `pnpm link`:
 
 1. Build the project:
 
