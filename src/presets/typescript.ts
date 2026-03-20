@@ -95,7 +95,7 @@ export const typescriptPreset: Preset = {
     ".claude/rules/git-workflow.md": [
       {
         placeholder: "<!-- SECTION:PRE_COMMIT_TOOLS -->",
-        content: ", Biome",
+        content: "  - Biome",
       },
       {
         placeholder: "<!-- SECTION:GIT_WORKFLOW_PRE_PUSH -->",

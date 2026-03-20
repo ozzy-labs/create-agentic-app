@@ -178,7 +178,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     if (filePath.endsWith(".md") && content.includes("<!-- SECTION:")) {
       const cleaned = content
         .replaceAll(/<!-- SECTION:\w+ -->\n?/g, "")
-        .replaceAll(/^\d+\.\s+\*\*[^*]+\*\*:\s*\n/gm, "");
+        .replaceAll(/^(?:\d+\.|-)\s+\*\*[^*]+\*\*:\s*\n/gm, "");
       allFiles.set(filePath, cleaned);
     }
   }
