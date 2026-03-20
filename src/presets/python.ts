@@ -89,7 +89,8 @@ export const pythonPreset: Preset = {
       },
       {
         placeholder: "<!-- SECTION:LINT_RULES_TYPECHECK -->",
-        content: "- 変更ファイルに Python を含む場合は `uv run mypy tests/` も実行する",
+        content:
+          "## 型チェック\n\n- 変更ファイルに Python を含む場合は `uv run mypy tests/` も実行する",
       },
     ],
     ".claude/skills/test/SKILL.md": [

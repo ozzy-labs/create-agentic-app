@@ -94,7 +94,8 @@ export const typescriptPreset: Preset = {
       },
       {
         placeholder: "<!-- SECTION:LINT_RULES_TYPECHECK -->",
-        content: "- 変更ファイルに TypeScript/JavaScript を含む場合は `tsc --noEmit` も実行する",
+        content:
+          "## 型チェック\n\n- 変更ファイルに TypeScript/JavaScript を含む場合は `tsc --noEmit` も実行する",
       },
     ],
     ".claude/skills/test/SKILL.md": [

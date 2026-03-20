@@ -20,8 +20,6 @@ user-invocable: false
 | `.github/workflows/*.yaml` | `actionlint` |
 <!-- SECTION:LINT_RULES_TABLE -->
 
-## 型チェック
-
 <!-- SECTION:LINT_RULES_TYPECHECK -->
 
 ## セキュリティスキャン
