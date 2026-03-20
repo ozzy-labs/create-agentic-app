@@ -187,7 +187,7 @@ Terraform ──→ tflint
 
 | Element | Notes |
 |---------|-------|
-| Vue | Frontend framework option, to be added when needed |
+| Vue | Frontend app option, to be added when needed |
 | Next.js / Remix | React meta-frameworks; out of scope (app architecture, not dev tooling) |
 
 ## Project Structure
