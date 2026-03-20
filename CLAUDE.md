@@ -28,7 +28,7 @@ src/              -> CLI source code
 src/presets/      -> Preset logic (merge contributions, dependencies)
 templates/        -> Preset file assets (copied as-is to output)
 tests/            -> Test files
-docs/             -> Design document
+docs/             -> Design docs, guides
 scripts/          -> Shell scripts
 ```
 
@@ -86,6 +86,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 
 GitHub Flow: `main` + feature branches. **squash merge only**.
 Branch naming: `<type>/<short-description>` (e.g., `feat/add-wizard`, `fix/merge-bug`).
+See [`docs/branch-strategy.md`](docs/branch-strategy.md) for full details.
 
 ## Skills
 
