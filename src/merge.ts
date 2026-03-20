@@ -58,7 +58,7 @@ export function expandMarkdown(template: string, sections: MarkdownSection[]): s
   for (const [placeholder, contents] of grouped) {
     // Deduplicate identical lines across preset contributions
     const allLines = contents.flatMap((c) => c.split("\n"));
-    const unique = [...new Map(allLines.map((l) => [l, l])).values()];
+    const unique = [...new Set(allLines)];
 
     // Detect inline placeholder (preceded by non-whitespace on same line) → join with ", "
     const idx = result.indexOf(placeholder);
