@@ -66,6 +66,12 @@ pnpm run lint:all     # All linters + typecheck
 
 See [docs/design.md](docs/design.md) for the full design document.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+To add a new preset, see [docs/preset-authoring.md](docs/preset-authoring.md).
+
 ## License
 
 MIT
