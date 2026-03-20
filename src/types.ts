@@ -1,0 +1,68 @@
+// --- Wizard ---
+
+export interface WizardAnswers {
+  projectName: string;
+  languages: Array<"typescript" | "python">;
+  frontend: "none" | "react";
+  iac: "none" | "cdk" | "cloudformation" | "terraform";
+}
+
+// --- Markdown template ---
+
+export interface MarkdownSection {
+  /** e.g. "<!-- SECTION:TOOLS -->" */
+  placeholder: string;
+  content: string;
+}
+
+// --- CI workflow ---
+
+export interface CiStep {
+  name: string;
+  run?: string;
+  uses?: string;
+  with?: Record<string, string>;
+  id?: string;
+}
+
+export interface CiContribution {
+  setupSteps?: CiStep[];
+  lintSteps?: CiStep[];
+  testSteps?: CiStep[];
+  buildSteps?: CiStep[];
+}
+
+// --- Preset ---
+
+export interface Preset {
+  name: string;
+  requires?: string[];
+  /** Owned files: relative path → content */
+  files: Record<string, string>;
+  /** Shared files: relative path → partial object to deep-merge */
+  merge: Record<string, unknown>;
+  /** Markdown templates: relative path → sections to inject */
+  markdown?: Record<string, MarkdownSection[]>;
+  /** CI workflow contribution */
+  ciSteps?: CiContribution;
+  /** Extra commands for setup.sh */
+  setupExtra?: string;
+}
+
+// --- File I/O abstraction ---
+
+export interface FileWriter {
+  write(path: string, content: string): void;
+}
+
+// --- Generator result (used by tests) ---
+
+export interface GenerateResult {
+  files: Map<string, string>;
+  fileList(): string[];
+  hasFile(path: string): boolean;
+  readText(path: string): string;
+  readJson(path: string): unknown;
+  readYaml(path: string): unknown;
+  readToml(path: string): unknown;
+}

@@ -1,0 +1,76 @@
+import { stringify as stringifyYaml } from "yaml";
+import type { CiContribution, CiStep } from "./types.js";
+
+interface CiWorkflowOptions {
+  contributions: CiContribution[];
+  hasTest: boolean;
+  hasBuild: boolean;
+}
+
+/** Build a complete ci.yaml from preset CI contributions. */
+export function buildCiWorkflow({ contributions, hasTest, hasBuild }: CiWorkflowOptions): string {
+  const setupSteps: CiStep[] = [];
+  const lintSteps: CiStep[] = [];
+  const testSteps: CiStep[] = [];
+  const buildSteps: CiStep[] = [];
+
+  for (const c of contributions) {
+    if (c.setupSteps) setupSteps.push(...c.setupSteps);
+    if (c.lintSteps) lintSteps.push(...c.lintSteps);
+    if (c.testSteps) testSteps.push(...c.testSteps);
+    if (c.buildSteps) buildSteps.push(...c.buildSteps);
+  }
+
+  // Common setup: checkout + mise
+  const commonSetup: CiStep[] = [
+    {
+      name: "Checkout",
+      uses: "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+    },
+    {
+      name: "Setup mise",
+      uses: "jdx/mise-action@5083fe46f0db0d17c4a46080674d3981cf8e538e",
+      with: { install: "true", cache: "true" },
+    },
+  ];
+
+  const allSteps = [...commonSetup, ...setupSteps, ...lintSteps];
+  if (hasTest) allSteps.push(...testSteps);
+  if (hasBuild) allSteps.push(...buildSteps);
+
+  const workflow = {
+    name: "CI",
+    on: {
+      push: { branches: ["main"] },
+      pull_request: { branches: ["main"] },
+    },
+    permissions: { contents: "read" },
+    concurrency: {
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: GitHub Actions expression syntax
+      group: "${{ github.workflow }}-${{ github.ref }}",
+      "cancel-in-progress": true,
+    },
+    jobs: {
+      "lint-and-check": {
+        "runs-on": "ubuntu-latest",
+        steps: allSteps.map(formatStep),
+      },
+    },
+  };
+
+  return stringifyYaml(workflow, { lineWidth: 120 });
+}
+
+function formatStep(step: CiStep): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  if (step.uses) {
+    result.name = step.name;
+    result.uses = step.uses;
+    if (step.with) result.with = step.with;
+  } else {
+    result.name = step.name;
+    if (step.run) result.run = step.run;
+  }
+  if (step.id) result.id = step.id;
+  return result;
+}

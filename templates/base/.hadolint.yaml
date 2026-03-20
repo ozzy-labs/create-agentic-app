@@ -1,0 +1,9 @@
+failure-threshold: warning
+
+ignored:
+  # Allow apt-get install without version pinning in dev containers
+  - DL3008
+  # Allow pipefail not set (devcontainer context)
+  - DL4006
+  # Allow last USER to be root (devcontainer context)
+  - DL3002

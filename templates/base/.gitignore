@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+__pypackages__/
+.venv/
+
+# Build output
+dist/
+build/
+*.js.map
+*.d.ts
+!infra/**/*.d.ts
+
+# CDK
+cdk.out/
+infra/cdk.out/
+cdk.context.json
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# AI agent local settings
+.claude/settings.local.json
+.claude/plans/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+*.lcov
+
+# Misc
+*.log
+.cache/
+tmp/
