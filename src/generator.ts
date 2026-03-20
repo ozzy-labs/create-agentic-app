@@ -3,8 +3,11 @@ import { parse as parseYaml } from "yaml";
 import { buildCiWorkflow } from "./ci.js";
 import { expandMarkdown, mergeFile } from "./merge.js";
 import { basePreset } from "./presets/base.js";
+import { cdkPreset } from "./presets/cdk.js";
+import { cloudformationPreset } from "./presets/cloudformation.js";
 import { pythonPreset } from "./presets/python.js";
 import { reactPreset } from "./presets/react.js";
+import { terraformPreset } from "./presets/terraform.js";
 import { typescriptPreset } from "./presets/typescript.js";
 import { expandSetupScript } from "./setup.js";
 import type {
@@ -20,6 +23,9 @@ const ALL_PRESETS: Record<string, Preset> = {
   typescript: typescriptPreset,
   python: pythonPreset,
   react: reactPreset,
+  cdk: cdkPreset,
+  cloudformation: cloudformationPreset,
+  terraform: terraformPreset,
 };
 
 /** Canonical application order for presets. */

@@ -1,0 +1,3 @@
+templates:
+  - cdk.out/**/*.template.json
+ignore_templates: []
