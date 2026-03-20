@@ -138,6 +138,15 @@ describe("expandMarkdown", () => {
     expect(result).toBe("pre-push: typecheck, mypy)");
   });
 
+  it("filters out empty strings from contributions", () => {
+    const template = "pre-push: <!-- SECTION:HOOKS -->)";
+    const result = expandMarkdown(template, [
+      { placeholder: "<!-- SECTION:HOOKS -->", content: "" },
+      { placeholder: "<!-- SECTION:HOOKS -->", content: "typecheck" },
+    ]);
+    expect(result).toBe("pre-push: typecheck)");
+  });
+
   it("leaves unmatched placeholders unchanged", () => {
     const template = "<!-- SECTION:UNKNOWN -->";
     const result = expandMarkdown(template, [

@@ -96,16 +96,7 @@ export const basePreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
-      {
-        placeholder: "<!-- SECTION:PRE_PUSH_HOOKS -->",
-        content: "",
-      },
-      {
-        placeholder: "<!-- SECTION:GIT_WORKFLOW -->",
-        content: "",
-      },
-    ],
+    "CLAUDE.md": [],
     "README.md": [],
   },
   ciSteps: {
