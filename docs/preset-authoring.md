@@ -83,6 +83,7 @@ const ALL_PRESETS: Record<string, Preset> = {
 const PRESET_ORDER = [
   "base", "typescript", "python",
   "react", "vue",  // add in logical position
+  "aws", "azure",
   "cdk", "cloudformation", "terraform", "bicep",
 ];
 ```
@@ -355,7 +356,8 @@ function makeAnswers(overrides: Partial<WizardAnswers> = {}): WizardAnswers {
     projectName: "test-app",
     languages: [],
     frontend: "none",
-    iac: "none",
+    clouds: [],
+    iac: [],
     ...overrides,
   };
 }

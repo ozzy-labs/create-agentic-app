@@ -20,10 +20,15 @@
       "none": { "label": "None" },
       "react": { "label": "React (Vite)", "hint": "forces TypeScript" }
     },
+    "clouds": {
+      "message": "Cloud providers",
+      "hint": "Select cloud providers to use",
+      "aws": { "label": "AWS" },
+      "azure": { "label": "Azure" }
+    },
     "iac": {
       "message": "Infrastructure as Code",
-      "hint": "Choose a cloud IaC tool or skip",
-      "none": { "label": "None" },
+      "hint": "Select IaC tools",
       "cdk": { "label": "AWS CDK", "hint": "forces TypeScript" },
       "cloudformation": { "label": "CloudFormation" },
       "terraform": { "label": "Terraform" },

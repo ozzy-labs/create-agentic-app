@@ -14,14 +14,15 @@ bash scripts/setup.sh
 
 ## Wizard
 
-The interactive wizard asks 4 questions to configure your project:
+The interactive wizard asks 5 questions to configure your project:
 
 | # | Question | Options |
 |---|----------|---------|
 | 1 | Project name | Text input |
 | 2 | Language toolchains | TypeScript / Python (multi-select) |
 | 3 | Frontend app | None / React (Vite) |
-| 4 | Infrastructure as Code | None / AWS CDK / CloudFormation / Terraform / Bicep (Azure) |
+| 4 | Cloud providers | AWS / Azure (multi-select) |
+| 5 | Infrastructure as Code | None / AWS CDK / CloudFormation / Terraform / Bicep (Azure) (multi-select, filtered by cloud providers) |
 
 ## Presets
 
@@ -31,10 +32,12 @@ The interactive wizard asks 4 questions to configure your project:
 | **typescript** | Language: TypeScript | Biome, tsconfig, vitest, tsdown |
 | **python** | Language: Python | Ruff, mypy, uv, pytest |
 | **react** | Frontend: React | Vite, React 19 (forces TypeScript) |
+| **aws** | Cloud: AWS | AWS CLI, MCP: AWS IaC, ~/.aws mount |
+| **azure** | Cloud: Azure | Azure CLI, MCP: Azure, ~/.azure mount |
 | **cdk** | IaC: AWS CDK | CDK v2, cfn-lint, cdk-nag (forces TypeScript) |
 | **cloudformation** | IaC: CloudFormation | cfn-lint, template scaffold |
 | **terraform** | IaC: Terraform | tflint, terraform fmt |
-| **bicep** | IaC: Bicep (Azure) | Azure CLI, bicepconfig.json |
+| **bicep** | IaC: Bicep (Azure) | bicepconfig.json |
 
 Presets are composable: each provides owned files + merge contributions to shared files
 (package.json, .mise.toml, lefthook.yaml, .vscode/settings.json, .vscode/extensions.json,

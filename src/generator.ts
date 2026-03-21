@@ -1,5 +1,7 @@
 import { buildCiWorkflow } from "./ci.js";
 import { expandMarkdown, mergeFile } from "./merge.js";
+import { awsPreset } from "./presets/aws.js";
+import { azurePreset } from "./presets/azure.js";
 import { basePreset } from "./presets/base.js";
 import { bicepPreset } from "./presets/bicep.js";
 import { cdkPreset } from "./presets/cdk.js";
@@ -23,6 +25,8 @@ const ALL_PRESETS: Record<string, Preset> = {
   typescript: typescriptPreset,
   python: pythonPreset,
   react: reactPreset,
+  aws: awsPreset,
+  azure: azurePreset,
   cdk: cdkPreset,
   cloudformation: cloudformationPreset,
   terraform: terraformPreset,
@@ -35,6 +39,8 @@ const PRESET_ORDER = [
   "typescript",
   "python",
   "react",
+  "aws",
+  "azure",
   "cdk",
   "cloudformation",
   "terraform",
@@ -54,11 +60,15 @@ export function resolvePresets(answers: WizardAnswers): string[] {
     selected.add("typescript"); // React forces TypeScript
   }
 
-  if (answers.iac === "cdk") {
-    selected.add("cdk");
-    selected.add("typescript"); // CDK forces TypeScript
-  } else if (answers.iac !== "none") {
-    selected.add(answers.iac);
+  for (const cloud of answers.clouds) {
+    selected.add(cloud);
+  }
+
+  for (const iac of answers.iac) {
+    selected.add(iac);
+    if (iac === "cdk") {
+      selected.add("typescript"); // CDK forces TypeScript
+    }
   }
 
   // Resolve `requires` chains
@@ -195,6 +205,28 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
         .replaceAll(/<!-- SECTION:\w+ -->\n?/g, "")
         .replaceAll(/^(?:\d+\.|-)\s+\*\*[^*]+\*\*:\s*\n(?=\n|#|$)/gm, "");
       allFiles.set(filePath, cleaned);
+    }
+  }
+
+  // 3.5. Generate .tflint.hcl based on cloud providers (if terraform is selected)
+  if (presetNames.includes("terraform")) {
+    const plugins: string[] = [];
+    if (answers.clouds.includes("aws")) {
+      plugins.push(`plugin "aws" {
+  enabled = true
+  version = "0.38.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
+}`);
+    }
+    if (answers.clouds.includes("azure")) {
+      plugins.push(`plugin "azurerm" {
+  enabled = true
+  version = "0.27.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
+}`);
+    }
+    if (plugins.length > 0) {
+      allFiles.set(".tflint.hcl", `${plugins.join("\n\n")}\n`);
     }
   }
 

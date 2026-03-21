@@ -12,23 +12,8 @@ export const terraformPreset: Preset = {
     },
     ".mise.toml": {
       tools: {
-        awscli: "2",
         terraform: "1",
         tflint: "0.55",
-      },
-    },
-    ".devcontainer/devcontainer.json": {
-      mounts: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable syntax
-        "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
-      ],
-    },
-    ".mcp.json": {
-      mcpServers: {
-        "aws-iac": {
-          command: "uvx",
-          args: ["awslabs.aws-iac-mcp@latest"],
-        },
       },
     },
   },
@@ -41,10 +26,6 @@ export const terraformPreset: Preset = {
       {
         placeholder: "<!-- SECTION:TECH_STACK_LINTING -->",
         content: "  - tflint (Terraform)",
-      },
-      {
-        placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
-        content: "- **MCP servers**: AWS IaC — configured in `.mcp.json`",
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",
