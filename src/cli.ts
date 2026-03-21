@@ -3,101 +3,109 @@ import pc from "picocolors";
 import { t } from "./i18n/index.js";
 import type { WizardAnswers } from "./types.js";
 
-function handleCancel(value: unknown): void {
-  if (p.isCancel(value)) {
-    p.cancel(t("cancel"));
-    process.exit(0);
+/** Build IaC options filtered by selected cloud providers. */
+function buildIacOptions(clouds: Array<"aws" | "azure">): Array<{
+  value: "cdk" | "cloudformation" | "terraform" | "bicep";
+  label: string;
+  hint?: string;
+}> {
+  const options: Array<{
+    value: "cdk" | "cloudformation" | "terraform" | "bicep";
+    label: string;
+    hint?: string;
+  }> = [];
+
+  if (clouds.includes("aws")) {
+    options.push(
+      { value: "cdk", label: t("wizard.iac.cdk.label"), hint: t("wizard.iac.cdk.hint") },
+      { value: "cloudformation", label: t("wizard.iac.cloudformation.label") },
+    );
   }
+  // Terraform is available for both AWS and Azure
+  if (clouds.includes("aws") || clouds.includes("azure")) {
+    options.push({ value: "terraform", label: t("wizard.iac.terraform.label") });
+  }
+  if (clouds.includes("azure")) {
+    options.push({ value: "bicep", label: t("wizard.iac.bicep.label") });
+  }
+
+  return options;
 }
 
 export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
   p.intro(pc.bold(t("intro")));
 
-  const projectName = await p.text({
-    message: t("wizard.projectName.message"),
-    placeholder: t("wizard.projectName.placeholder"),
-    initialValue: defaultName ?? "",
-    validate(value) {
-      if (!value.trim()) return t("wizard.projectName.required");
-      if (!/^[a-z0-9][a-z0-9._-]*$/i.test(value.trim())) {
-        return t("wizard.projectName.invalid");
-      }
-    },
-  });
-  handleCancel(projectName);
+  const answers = await p.group(
+    {
+      projectName: () =>
+        p.text({
+          message: t("wizard.projectName.message"),
+          placeholder: t("wizard.projectName.placeholder"),
+          initialValue: defaultName ?? "",
+          validate(value) {
+            if (!value.trim()) return t("wizard.projectName.required");
+            if (!/^[a-z0-9][a-z0-9._-]*$/i.test(value.trim())) {
+              return t("wizard.projectName.invalid");
+            }
+          },
+        }),
+      languages: () =>
+        p.multiselect({
+          message: `${t("wizard.languages.message")} ${pc.dim(t("wizard.languages.hint"))}`,
+          options: [
+            { value: "typescript" as const, label: t("wizard.languages.typescript.label") },
+            { value: "python" as const, label: t("wizard.languages.python.label") },
+          ],
+          required: false,
+        }),
+      frontend: () =>
+        p.select({
+          message: `${t("wizard.frontend.message")} ${pc.dim(t("wizard.frontend.hint"))}`,
+          options: [
+            { value: "none" as const, label: t("wizard.frontend.none.label") },
+            {
+              value: "react" as const,
+              label: t("wizard.frontend.react.label"),
+              hint: t("wizard.frontend.react.hint"),
+            },
+          ],
+        }),
+      clouds: () =>
+        p.multiselect({
+          message: `${t("wizard.clouds.message")} ${pc.dim(t("wizard.clouds.hint"))}`,
+          options: [
+            { value: "aws" as const, label: t("wizard.clouds.aws.label") },
+            { value: "azure" as const, label: t("wizard.clouds.azure.label") },
+          ],
+          required: false,
+        }),
+      iac: ({ results }) => {
+        const clouds = (results.clouds ?? []) as WizardAnswers["clouds"];
+        if (clouds.length === 0) return undefined;
 
-  const languages = await p.multiselect({
-    message: `${t("wizard.languages.message")} ${pc.dim(t("wizard.languages.hint"))}`,
-    options: [
-      { value: "typescript" as const, label: t("wizard.languages.typescript.label") },
-      { value: "python" as const, label: t("wizard.languages.python.label") },
-    ],
-    required: false,
-  });
-  handleCancel(languages);
+        const options = buildIacOptions(clouds);
+        if (options.length === 0) return undefined;
 
-  const frontend = await p.select({
-    message: `${t("wizard.frontend.message")} ${pc.dim(t("wizard.frontend.hint"))}`,
-    options: [
-      { value: "none" as const, label: t("wizard.frontend.none.label") },
-      {
-        value: "react" as const,
-        label: t("wizard.frontend.react.label"),
-        hint: t("wizard.frontend.react.hint"),
+        return p.multiselect({
+          message: `${t("wizard.iac.message")} ${pc.dim(t("wizard.iac.hint"))}`,
+          options,
+          required: false,
+        });
       },
-    ],
-  });
-  handleCancel(frontend);
-
-  const clouds = await p.multiselect({
-    message: `${t("wizard.clouds.message")} ${pc.dim(t("wizard.clouds.hint"))}`,
-    options: [
-      { value: "aws" as const, label: t("wizard.clouds.aws.label") },
-      { value: "azure" as const, label: t("wizard.clouds.azure.label") },
-    ],
-    required: false,
-  });
-  handleCancel(clouds);
-
-  const selectedClouds = clouds as WizardAnswers["clouds"];
-  let iac: WizardAnswers["iac"] = [];
-
-  if (selectedClouds.length > 0) {
-    type IacValue = "cdk" | "cloudformation" | "terraform" | "bicep";
-    const iacOptions: Array<{ value: IacValue; label: string; hint?: string }> = [];
-
-    if (selectedClouds.includes("aws")) {
-      iacOptions.push(
-        { value: "cdk", label: t("wizard.iac.cdk.label"), hint: t("wizard.iac.cdk.hint") },
-        { value: "cloudformation", label: t("wizard.iac.cloudformation.label") },
-      );
-    }
-    if (selectedClouds.includes("aws") || selectedClouds.includes("azure")) {
-      // Avoid duplicate if both clouds selected
-      if (!iacOptions.some((o) => o.value === "terraform")) {
-        iacOptions.push({ value: "terraform", label: t("wizard.iac.terraform.label") });
-      }
-    }
-    if (selectedClouds.includes("azure")) {
-      iacOptions.push({ value: "bicep", label: t("wizard.iac.bicep.label") });
-    }
-
-    if (iacOptions.length > 0) {
-      const iacAnswer = await p.multiselect({
-        message: `${t("wizard.iac.message")} ${pc.dim(t("wizard.iac.hint"))}`,
-        options: iacOptions,
-        required: false,
-      });
-      handleCancel(iacAnswer);
-      iac = iacAnswer as WizardAnswers["iac"];
-    }
-  }
+    },
+    {
+      onCancel: () => {
+        p.cancel(t("cancel"));
+        process.exit(0);
+      },
+    },
+  );
 
   return {
-    projectName: (projectName as string).trim(),
-    languages: languages as WizardAnswers["languages"],
-    frontend: frontend as WizardAnswers["frontend"],
-    clouds: selectedClouds,
-    iac,
+    projectName: (answers.projectName as string).trim(),
+    languages: (answers.languages ?? []) as WizardAnswers["languages"],
+    frontend: (answers.frontend ?? "none") as WizardAnswers["frontend"],
+    clouds: (answers.clouds ?? []) as WizardAnswers["clouds"],
+    iac: (answers.iac ?? []) as WizardAnswers["iac"],
   };
 }
