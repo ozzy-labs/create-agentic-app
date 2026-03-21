@@ -150,7 +150,7 @@ Application order: `base → typescript → python → react → cdk / cloudform
 
 | File type | Strategy |
 |-----------|----------|
-| JSON (`package.json`, `.mcp.json`) | Deep merge. Arrays: unique union |
+| JSON (`package.json`, `.mcp.json`, `.vscode/*.json`, `devcontainer.json`) | Deep merge. Arrays: unique union |
 | YAML (`lefthook.yaml`, `ci.yaml`) | Deep merge. Arrays: unique union |
 | TOML (`.mise.toml`) | Deep merge |
 | Markdown (`CLAUDE.md`, `README.md`) | Template + section injection (exception: uses placeholder-based approach) |

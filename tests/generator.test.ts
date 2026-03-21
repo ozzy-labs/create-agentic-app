@@ -517,6 +517,36 @@ describe("generate (typescript + python)", () => {
     expect(scripts["lint:all"]).toContain("pnpm run lint:mypy");
     expect(scripts["lint:all"]).toContain("pnpm run lint:secrets");
   });
+
+  it("merges both language settings into VSCode settings", () => {
+    const settings = result.readJson(".vscode/settings.json") as Record<string, unknown>;
+    // TypeScript settings
+    expect(settings["editor.defaultFormatter"]).toBe("biomejs.biome");
+    expect(settings["[typescript]"]).toBeDefined();
+    // Python settings
+    expect(settings["mypy-type-checker.importStrategy"]).toBe("fromEnvironment");
+    expect(settings["[python]"]).toBeDefined();
+  });
+
+  it("merges both language extensions into VSCode extensions", () => {
+    const ext = result.readJson(".vscode/extensions.json") as Record<string, string[]>;
+    expect(ext.recommendations).toContain("biomejs.biome");
+    expect(ext.recommendations).toContain("charliermarsh.ruff");
+    expect(ext.recommendations).toContain("ms-python.python");
+    // base extensions still present
+    expect(ext.recommendations).toContain("EditorConfig.EditorConfig");
+  });
+
+  it("merges both language extensions and mounts into devcontainer", () => {
+    const dc = result.readJson(".devcontainer/devcontainer.json") as Record<string, unknown>;
+    const customizations = dc.customizations as Record<string, Record<string, string[]>>;
+    expect(customizations.vscode.extensions).toContain("biomejs.biome");
+    expect(customizations.vscode.extensions).toContain("charliermarsh.ruff");
+    expect(customizations.vscode.extensions).toContain("ms-python.python");
+    const mounts = dc.mounts as string[];
+    expect(mounts.some((m: string) => m.includes("uv-cache"))).toBe(true);
+    expect(mounts.some((m: string) => m.includes("pnpm-store"))).toBe(true);
+  });
 });
 
 // --- Pattern 4: TypeScript + React ---

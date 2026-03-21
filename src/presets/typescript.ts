@@ -31,6 +31,7 @@ export const typescriptPreset: Preset = {
       "editor.codeActionsOnSave": {
         "source.fixAll.biome": "explicit",
       },
+      // Top-level default; language-specific overrides in base (md/yaml/toml/shell) and python take precedence
       "editor.defaultFormatter": "biomejs.biome",
       "search.exclude": {
         "**/dist": true,
