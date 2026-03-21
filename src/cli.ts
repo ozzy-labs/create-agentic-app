@@ -18,15 +18,24 @@ function buildIacOptions(clouds: Array<"aws" | "azure">): Array<{
   if (clouds.includes("aws")) {
     options.push(
       { value: "cdk", label: t("wizard.iac.cdk.label"), hint: t("wizard.iac.cdk.hint") },
-      { value: "cloudformation", label: t("wizard.iac.cloudformation.label") },
+      {
+        value: "cloudformation",
+        label: t("wizard.iac.cloudformation.label"),
+        hint: t("wizard.iac.cloudformation.hint"),
+      },
     );
   }
   // Terraform is available for both AWS and Azure
   if (clouds.includes("aws") || clouds.includes("azure")) {
-    options.push({ value: "terraform", label: t("wizard.iac.terraform.label") });
+    const tfClouds = clouds.map((c) => t(`wizard.clouds.${c}.label`)).join(", ");
+    options.push({ value: "terraform", label: t("wizard.iac.terraform.label"), hint: tfClouds });
   }
   if (clouds.includes("azure")) {
-    options.push({ value: "bicep", label: t("wizard.iac.bicep.label") });
+    options.push({
+      value: "bicep",
+      label: t("wizard.iac.bicep.label"),
+      hint: t("wizard.iac.bicep.hint"),
+    });
   }
 
   return options;

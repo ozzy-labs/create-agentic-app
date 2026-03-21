@@ -29,10 +29,10 @@
     "iac": {
       "message": "Infrastructure as Code",
       "hint": "Select IaC tools",
-      "cdk": { "label": "AWS CDK", "hint": "forces TypeScript" },
-      "cloudformation": { "label": "CloudFormation" },
+      "cdk": { "label": "CDK", "hint": "AWS, forces TypeScript" },
+      "cloudformation": { "label": "CloudFormation", "hint": "AWS" },
       "terraform": { "label": "Terraform" },
-      "bicep": { "label": "Bicep (Azure)" }
+      "bicep": { "label": "Bicep", "hint": "Azure" }
     }
   },
   "overwrite": {
