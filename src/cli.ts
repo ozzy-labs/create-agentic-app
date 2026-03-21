@@ -4,7 +4,7 @@ import { t } from "./i18n/index.js";
 import type { WizardAnswers } from "./types.js";
 
 /** Build IaC options filtered by selected cloud providers. */
-function buildIacOptions(clouds: Array<"aws" | "azure">): Array<{
+function buildIacOptions(clouds: Array<"aws" | "azure" | "gcp">): Array<{
   value: "cdk" | "cloudformation" | "terraform" | "bicep";
   label: string;
   hint?: string;
@@ -25,8 +25,8 @@ function buildIacOptions(clouds: Array<"aws" | "azure">): Array<{
       },
     );
   }
-  // Terraform is available for both AWS and Azure
-  if (clouds.includes("aws") || clouds.includes("azure")) {
+  // Terraform is available for AWS, Azure, and Google Cloud
+  if (clouds.includes("aws") || clouds.includes("azure") || clouds.includes("gcp")) {
     const tfClouds = clouds.map((c) => t(`wizard.clouds.${c}.label`)).join(", ");
     options.push({ value: "terraform", label: t("wizard.iac.terraform.label"), hint: tfClouds });
   }
@@ -90,6 +90,7 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
           options: [
             { value: "aws" as const, label: t("wizard.clouds.aws.label") },
             { value: "azure" as const, label: t("wizard.clouds.azure.label") },
+            { value: "gcp" as const, label: t("wizard.clouds.gcp.label") },
           ],
           required: false,
         }),

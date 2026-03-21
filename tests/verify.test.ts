@@ -91,7 +91,7 @@ const patterns: PatternDef[] = [
         "ms-azuretools.vscode-bicep",
       ],
       mountsMustInclude: ["pnpm-store"],
-      mountsMustExclude: [".aws", ".azure", "uv-cache"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["prepare", "lint:md", "lint:yaml", "lint:secrets"],
@@ -121,7 +121,7 @@ const patterns: PatternDef[] = [
         "ms-azuretools.vscode-bicep",
       ],
       mountsMustInclude: ["pnpm-store"],
-      mountsMustExclude: [".aws", ".azure", "uv-cache"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "test", "build"],
@@ -161,7 +161,7 @@ const patterns: PatternDef[] = [
         "ms-azuretools.vscode-bicep",
       ],
       mountsMustInclude: ["pnpm-store", "uv-cache"],
-      mountsMustExclude: [".aws", ".azure"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint:python", "lint:mypy"],
@@ -188,7 +188,7 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome", "charliermarsh.ruff"],
       extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
       mountsMustInclude: ["pnpm-store", "uv-cache"],
-      mountsMustExclude: [".aws", ".azure"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:python", "lint:mypy"],
@@ -214,7 +214,7 @@ const patterns: PatternDef[] = [
       ],
       extensionsMustExclude: ["charliermarsh.ruff", "ms-azuretools.vscode-bicep"],
       mountsMustInclude: ["pnpm-store", ".aws"],
-      mountsMustExclude: ["uv-cache", ".azure"],
+      mountsMustExclude: ["uv-cache", ".azure", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:cfn", "cdk:synth"],
@@ -236,7 +236,7 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
       extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
       mountsMustInclude: ["pnpm-store", ".aws"],
-      mountsMustExclude: ["uv-cache", ".azure"],
+      mountsMustExclude: ["uv-cache", ".azure", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:cfn"],
@@ -258,7 +258,7 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
       extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
       mountsMustInclude: ["pnpm-store", ".aws"],
-      mountsMustExclude: ["uv-cache", ".azure"],
+      mountsMustExclude: ["uv-cache", ".azure", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:tf"],
@@ -280,11 +280,33 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome", "ms-azuretools.vscode-bicep"],
       extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode"],
       mountsMustInclude: ["pnpm-store", ".azure"],
-      mountsMustExclude: [".aws", "uv-cache"],
+      mountsMustExclude: [".aws", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:bicep"],
       scriptsMustExclude: ["lint:python", "lint:cfn", "lint:tf", "cdk:synth"],
+    },
+  },
+  {
+    name: "gcp + terraform (ts)",
+    answers: { languages: ["typescript"], clouds: ["gcp"], iac: ["terraform"] },
+    vscodeSettings: {
+      mustInclude: ["biomejs.biome"],
+      mustExclude: ["cdk.out", "charliermarsh.ruff"],
+    },
+    vscodeExtensions: {
+      mustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      mustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
+    },
+    devcontainer: {
+      extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
+      mountsMustInclude: ["pnpm-store", ".config/gcloud"],
+      mountsMustExclude: [".aws", ".azure", "uv-cache"],
+    },
+    packageJson: {
+      scriptsMustInclude: ["lint", "typecheck", "lint:tf"],
+      scriptsMustExclude: ["lint:python", "lint:cfn", "cdk:synth", "lint:bicep"],
     },
   },
   {
@@ -302,7 +324,7 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
       extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
       mountsMustInclude: ["pnpm-store", ".azure"],
-      mountsMustExclude: [".aws", "uv-cache"],
+      mountsMustExclude: [".aws", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:tf"],
@@ -328,7 +350,7 @@ const patterns: PatternDef[] = [
       ],
       extensionsMustExclude: ["biomejs.biome", "amazonwebservices.aws-toolkit-vscode"],
       mountsMustInclude: ["pnpm-store", "uv-cache", ".azure"],
-      mountsMustExclude: [".aws"],
+      mountsMustExclude: [".aws", ".config/gcloud"],
     },
     packageJson: {
       scriptsMustInclude: ["lint:python", "lint:bicep"],
@@ -350,7 +372,7 @@ const patterns: PatternDef[] = [
       extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome", "ms-azuretools.vscode-bicep"],
       extensionsMustExclude: [],
       mountsMustInclude: ["pnpm-store", ".aws", ".azure"],
-      mountsMustExclude: ["uv-cache"],
+      mountsMustExclude: [".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "lint:tf", "lint:bicep"],
@@ -380,7 +402,7 @@ const patterns: PatternDef[] = [
         "ms-azuretools.vscode-bicep",
       ],
       mountsMustInclude: ["pnpm-store"],
-      mountsMustExclude: [".aws", ".azure", "uv-cache"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
       scriptsMustInclude: ["lint", "typecheck", "test", "build"],
@@ -388,12 +410,12 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "full config (ts + python + react + aws + cdk)",
+    name: "full config (ts + python + react + aws + gcp + cdk + terraform)",
     answers: {
       languages: ["typescript", "python"],
       frontend: "react",
-      clouds: ["aws"],
-      iac: ["cdk"],
+      clouds: ["aws", "gcp"],
+      iac: ["cdk", "terraform"],
     },
     vscodeSettings: {
       mustInclude: ["biomejs.biome", "charliermarsh.ruff", "**/cdk.out", "**/dist"],
@@ -417,12 +439,12 @@ const patterns: PatternDef[] = [
         "amazonwebservices.aws-toolkit-vscode",
       ],
       extensionsMustExclude: [],
-      mountsMustInclude: ["pnpm-store", "uv-cache", ".aws"],
+      mountsMustInclude: ["pnpm-store", "uv-cache", ".aws", ".config/gcloud"],
       mountsMustExclude: [],
     },
     packageJson: {
-      scriptsMustInclude: ["lint", "typecheck", "lint:python", "lint:cfn", "lint:all"],
-      scriptsMustExclude: ["lint:tf", "lint:bicep"],
+      scriptsMustInclude: ["lint", "typecheck", "lint:python", "lint:cfn", "lint:tf", "lint:all"],
+      scriptsMustExclude: ["lint:bicep"],
     },
   },
 ];
@@ -634,6 +656,16 @@ describe("verify: CLAUDE.md MCP servers", () => {
     expect(mcpLine).not.toMatch(/, ,/);
     expect(mcpLine).toContain("AWS IaC");
     expect(mcpLine).toContain("Azure");
+  });
+
+  it("has Google Cloud in MCP servers when gcp is selected", () => {
+    const result = generate(
+      makeAnswers({ languages: ["typescript"], clouds: ["gcp"], iac: ["terraform"] }),
+    );
+    const claude = result.readText("CLAUDE.md");
+    const mcpLine = claude.split("\n").find((l) => l.includes("MCP servers"));
+    expect(mcpLine).toBeDefined();
+    expect(mcpLine).toContain("Google Cloud");
   });
 
   it("has comma separator between base and injected MCP servers", () => {

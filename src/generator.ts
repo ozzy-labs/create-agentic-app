@@ -6,6 +6,7 @@ import { basePreset } from "./presets/base.js";
 import { bicepPreset } from "./presets/bicep.js";
 import { cdkPreset } from "./presets/cdk.js";
 import { cloudformationPreset } from "./presets/cloudformation.js";
+import { gcpPreset } from "./presets/gcp.js";
 import { nextjsPreset } from "./presets/nextjs.js";
 import { pythonPreset } from "./presets/python.js";
 import { reactPreset } from "./presets/react.js";
@@ -29,6 +30,7 @@ const ALL_PRESETS: Record<string, Preset> = {
   nextjs: nextjsPreset,
   aws: awsPreset,
   azure: azurePreset,
+  gcp: gcpPreset,
   cdk: cdkPreset,
   cloudformation: cloudformationPreset,
   terraform: terraformPreset,
@@ -68,6 +70,7 @@ const PRESET_ORDER = [
   "nextjs",
   "aws",
   "azure",
+  "gcp",
   "cdk",
   "cloudformation",
   "terraform",
@@ -299,6 +302,13 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   enabled = true
   version = "0.27.0"
   source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
+}`);
+    }
+    if (answers.clouds.includes("gcp")) {
+      plugins.push(`plugin "google" {
+  enabled = true
+  version = "0.38.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-google"
 }`);
     }
     if (plugins.length > 0) {

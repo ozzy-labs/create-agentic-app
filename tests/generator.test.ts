@@ -43,6 +43,11 @@ describe("resolvePresets", () => {
     expect(result).toContain("cdk");
   });
 
+  it("includes gcp when selected", () => {
+    const result = resolvePresets(makeAnswers({ clouds: ["gcp"] }));
+    expect(result).toContain("gcp");
+  });
+
   it("maintains canonical order", () => {
     const result = resolvePresets(
       makeAnswers({
@@ -53,6 +58,17 @@ describe("resolvePresets", () => {
       }),
     );
     expect(result).toEqual(["base", "typescript", "python", "react", "aws", "cdk"]);
+  });
+
+  it("maintains canonical order with gcp", () => {
+    const result = resolvePresets(
+      makeAnswers({
+        languages: ["typescript"],
+        clouds: ["aws", "azure", "gcp"],
+        iac: ["terraform"],
+      }),
+    );
+    expect(result).toEqual(["base", "typescript", "aws", "azure", "gcp", "terraform"]);
   });
 
   it("deduplicates typescript when forced by multiple selections", () => {
