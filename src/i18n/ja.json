@@ -25,7 +25,8 @@
       "message": "クラウドプロバイダー",
       "hint": "使用するクラウドプロバイダーを選択",
       "aws": { "label": "AWS" },
-      "azure": { "label": "Azure" }
+      "azure": { "label": "Azure" },
+      "gcp": { "label": "Google Cloud" }
     },
     "iac": {
       "message": "Infrastructure as Code",

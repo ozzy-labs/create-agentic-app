@@ -18,12 +18,12 @@
 | 1 | Project name | Text input | — |
 | 2 | Language toolchains | Multi-select | TypeScript / Python |
 | 3 | Frontend app | Single-select | None / React + Vite / Next.js |
-| 4 | Cloud providers | Multi-select | AWS / Azure |
+| 4 | Cloud providers | Multi-select | AWS / Azure / Google Cloud |
 | 5 | Infrastructure as Code | Multi-select | None / CDK / CloudFormation / Terraform / Bicep (filtered by selected cloud providers) |
 
 ## Presets
 
-11 presets, mapped 1:1 to wizard selections.
+12 presets, mapped 1:1 to wizard selections.
 
 | Preset | Trigger | Requires |
 |--------|---------|----------|
@@ -34,9 +34,10 @@
 | `nextjs` | Frontend: Next.js | `typescript` (forced) |
 | `aws` | Cloud: AWS | — |
 | `azure` | Cloud: Azure | — |
+| `gcp` | Cloud: Google Cloud | — |
 | `cdk` | IaC: CDK (AWS) | `typescript` (forced) |
 | `cloudformation` | IaC: CloudFormation (AWS) | — |
-| `terraform` | IaC: Terraform (AWS, Azure) | — |
+| `terraform` | IaC: Terraform (AWS, Azure, Google Cloud) | — |
 | `bicep` | IaC: Bicep (Azure) | — |
 
 ### プリセットレイヤー
@@ -46,7 +47,7 @@
 | 0 | Base | 常に適用 | `base` |
 | 1 | Language | 複数選択可 | `typescript`, `python` |
 | 2 | Frontend | 単一選択（排他） | `react`, `nextjs` |
-| 3 | Cloud | 複数選択可 | `aws`, `azure` |
+| 3 | Cloud | 複数選択可 | `aws`, `azure`, `gcp` |
 | 4 | IaC | 複数選択可、Cloud に依存 | `cdk`, `cloudformation`, `terraform`, `bicep` |
 
 **相互作用ルール:**
@@ -57,7 +58,7 @@
 
 **新プリセット追加時** は、いずれかのレイヤーに割り当てる。既存レイヤーに該当しない場合は、新レイヤーの追加とウィザードフローの更新を検討する。
 
-Application order: `base → typescript → python → react → nextjs → aws → azure → cdk → cloudformation → terraform → bicep`
+Application order: `base → typescript → python → react → nextjs → aws → azure → gcp → cdk → cloudformation → terraform → bicep`
 
 ### Always Included (base)
 
@@ -131,6 +132,14 @@ Application order: `base → typescript → python → react → nextjs → aws 
 | MCP: Azure | `.mcp.json` (auto-added) |
 | devcontainer: ~/.azure mount | `.devcontainer/devcontainer.json` (merge) |
 
+**Google Cloud** — adds:
+
+| Element | Files |
+|---------|-------|
+| gcloud CLI | via mise |
+| MCP: Google Cloud | `.mcp.json` (auto-added) |
+| devcontainer: ~/.config/gcloud mount | `.devcontainer/devcontainer.json` (merge) |
+
 ### IaC Selection
 
 **CDK** (AWS, forces TypeScript) — adds:
@@ -183,14 +192,14 @@ Application order: `base → typescript → python → react → nextjs → aws 
 | Shared file | Modified by |
 |-------------|-------------|
 | `package.json` | base, typescript, python, react, nextjs, cdk, bicep |
-| `.mise.toml` | base, typescript, python, aws, azure, cdk, cloudformation, terraform |
+| `.mise.toml` | base, typescript, python, aws, azure, gcp, cdk, cloudformation, terraform |
 | `lefthook.yaml` | base, typescript, python |
 | `.github/workflows/ci.yaml` | base, typescript, python, cdk, cloudformation, terraform, bicep |
 | `.github/workflows/cd.yaml` | cdk, cloudformation, terraform, bicep |
-| `.mcp.json` | base, aws, azure |
+| `.mcp.json` | base, aws, azure, gcp |
 | `.vscode/settings.json` | typescript, python, nextjs, cdk |
 | `.vscode/extensions.json` | typescript, python, cdk, bicep |
-| `.devcontainer/devcontainer.json` | typescript, python, aws, azure, cdk, bicep |
+| `.devcontainer/devcontainer.json` | typescript, python, aws, azure, gcp, cdk, bicep |
 | `CLAUDE.md` | all presets |
 | `README.md` | all presets |
 
@@ -240,6 +249,9 @@ AWS ────────→ AWS CLI
 Azure ──────→ Azure CLI
            └→ MCP: Azure
            └→ ~/.azure mount
+GCP ────────→ gcloud CLI
+           └→ MCP: Google Cloud
+           └→ ~/.config/gcloud mount
 ```
 
 ## Not Included (add manually later)
@@ -253,7 +265,6 @@ Azure ──────→ Azure CLI
 
 | 要素 | レイヤー | 備考 |
 |-----|---------|------|
-| Google Cloud | 3 (Cloud) | 次に実装予定（#67） |
 | マルチエージェント対応（Codex 等） | — | 保留。base プリセットから Claude Code 設定を分離する設計変更が前提 |
 | バックエンドFW（Express, FastAPI 等） | — | 保留。モノレポ対応とテスト戦略の見直しが前提 |
 | Vue / Nuxt | 2 (Frontend) | 必要になったら追加 |
@@ -294,6 +305,7 @@ create-agentic-dev/
 │       ├── nextjs.ts
 │       ├── aws.ts
 │       ├── azure.ts
+│       ├── gcp.ts
 │       ├── cdk.ts
 │       ├── cloudformation.ts
 │       └── terraform.ts

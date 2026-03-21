@@ -4,7 +4,7 @@ export interface WizardAnswers {
   projectName: string;
   languages: Array<"typescript" | "python">;
   frontend: "none" | "react" | "nextjs";
-  clouds: Array<"aws" | "azure">;
+  clouds: Array<"aws" | "azure" | "gcp">;
   iac: Array<"cdk" | "cloudformation" | "terraform" | "bicep">;
 }
 
