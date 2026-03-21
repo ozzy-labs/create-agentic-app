@@ -17,7 +17,6 @@ export const cdkPreset: Preset = {
     },
     ".mise.toml": {
       tools: {
-        awscli: "2",
         "npm:aws-cdk": "2",
         "pipx:cfn-lint": "1",
       },
@@ -36,18 +35,6 @@ export const cdkPreset: Preset = {
           extensions: ["amazonwebservices.aws-toolkit-vscode"],
         },
       },
-      mounts: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable syntax
-        "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
-      ],
-    },
-    ".mcp.json": {
-      mcpServers: {
-        "aws-iac": {
-          command: "uvx",
-          args: ["awslabs.aws-iac-mcp@latest"],
-        },
-      },
     },
   },
   markdown: {
@@ -59,10 +46,6 @@ export const cdkPreset: Preset = {
       {
         placeholder: "<!-- SECTION:TECH_STACK_LINTING -->",
         content: "  - cfn-lint (CloudFormation)",
-      },
-      {
-        placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
-        content: ", AWS IaC",
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",

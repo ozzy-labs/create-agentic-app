@@ -12,22 +12,7 @@ export const cloudformationPreset: Preset = {
     },
     ".mise.toml": {
       tools: {
-        awscli: "2",
         "pipx:cfn-lint": "1",
-      },
-    },
-    ".devcontainer/devcontainer.json": {
-      mounts: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable syntax
-        "source=${localEnv:HOME}/.aws,target=/home/vscode/.aws,type=bind,consistency=cached",
-      ],
-    },
-    ".mcp.json": {
-      mcpServers: {
-        "aws-iac": {
-          command: "uvx",
-          args: ["awslabs.aws-iac-mcp@latest"],
-        },
       },
     },
   },
@@ -40,10 +25,6 @@ export const cloudformationPreset: Preset = {
       {
         placeholder: "<!-- SECTION:TECH_STACK_LINTING -->",
         content: "  - cfn-lint (CloudFormation)",
-      },
-      {
-        placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
-        content: "- **MCP servers**: AWS IaC — configured in `.mcp.json`",
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",

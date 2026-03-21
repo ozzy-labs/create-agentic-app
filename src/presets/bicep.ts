@@ -11,11 +11,6 @@ export const bicepPreset: Preset = {
           "find infra -name '*.bicep' -exec az bicep build --file {} --stdout ; > /dev/null",
       },
     },
-    ".mise.toml": {
-      tools: {
-        "pipx:azure-cli": "2",
-      },
-    },
     ".vscode/extensions.json": {
       recommendations: ["ms-azuretools.vscode-bicep"],
     },
@@ -23,18 +18,6 @@ export const bicepPreset: Preset = {
       customizations: {
         vscode: {
           extensions: ["ms-azuretools.vscode-bicep"],
-        },
-      },
-      mounts: [
-        // biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable syntax
-        "source=${localEnv:HOME}/.azure,target=/home/vscode/.azure,type=bind,consistency=cached",
-      ],
-    },
-    ".mcp.json": {
-      mcpServers: {
-        azure: {
-          command: "npx",
-          args: ["-y", "@azure/mcp@latest", "server", "start"],
         },
       },
     },
@@ -48,10 +31,6 @@ export const bicepPreset: Preset = {
       {
         placeholder: "<!-- SECTION:TECH_STACK_LINTING -->",
         content: "  - az bicep build (Bicep)",
-      },
-      {
-        placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
-        content: "- **MCP servers**: Azure — configured in `.mcp.json`",
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",

@@ -8,7 +8,8 @@ function makeAnswers(overrides: Partial<WizardAnswers> = {}): WizardAnswers {
     projectName: "test-app",
     languages: [],
     frontend: "none",
-    iac: "none",
+    clouds: [],
+    iac: [],
     ...overrides,
   };
 }
@@ -31,21 +32,26 @@ describe("resolvePresets", () => {
   });
 
   it("forces typescript when cdk is selected", () => {
-    const result = resolvePresets(makeAnswers({ iac: "cdk" }));
+    const result = resolvePresets(makeAnswers({ clouds: ["aws"], iac: ["cdk"] }));
     expect(result).toContain("typescript");
     expect(result).toContain("cdk");
   });
 
   it("maintains canonical order", () => {
     const result = resolvePresets(
-      makeAnswers({ languages: ["python", "typescript"], frontend: "react", iac: "cdk" }),
+      makeAnswers({
+        languages: ["python", "typescript"],
+        frontend: "react",
+        clouds: ["aws"],
+        iac: ["cdk"],
+      }),
     );
-    expect(result).toEqual(["base", "typescript", "python", "react", "cdk"]);
+    expect(result).toEqual(["base", "typescript", "python", "react", "aws", "cdk"]);
   });
 
   it("deduplicates typescript when forced by multiple selections", () => {
     const result = resolvePresets(
-      makeAnswers({ languages: ["typescript"], frontend: "react", iac: "cdk" }),
+      makeAnswers({ languages: ["typescript"], frontend: "react", clouds: ["aws"], iac: ["cdk"] }),
     );
     const tsCount = result.filter((p) => p === "typescript").length;
     expect(tsCount).toBe(1);
@@ -648,7 +654,7 @@ describe("generate (react)", () => {
 
 // --- Pattern 5: TypeScript + CDK ---
 describe("generate (cdk)", () => {
-  const answers = makeAnswers({ iac: "cdk" });
+  const answers = makeAnswers({ clouds: ["aws"], iac: ["cdk"] });
   const result = generate(answers);
 
   it("forces TypeScript preset inclusion", () => {
@@ -767,7 +773,11 @@ describe("generate (cdk)", () => {
 
 // --- Pattern 6: TypeScript + CloudFormation ---
 describe("generate (cloudformation)", () => {
-  const answers = makeAnswers({ languages: ["typescript"], iac: "cloudformation" });
+  const answers = makeAnswers({
+    languages: ["typescript"],
+    clouds: ["aws"],
+    iac: ["cloudformation"],
+  });
   const result = generate(answers);
 
   it("includes CloudFormation owned files", () => {
@@ -815,7 +825,7 @@ describe("generate (cloudformation)", () => {
 
 // --- Pattern 7: TypeScript + Terraform ---
 describe("generate (terraform)", () => {
-  const answers = makeAnswers({ languages: ["typescript"], iac: "terraform" });
+  const answers = makeAnswers({ languages: ["typescript"], clouds: ["aws"], iac: ["terraform"] });
   const result = generate(answers);
 
   it("includes Terraform owned files", () => {
@@ -873,7 +883,8 @@ describe("generate (full config)", () => {
   const answers = makeAnswers({
     languages: ["typescript", "python"],
     frontend: "react",
-    iac: "cdk",
+    clouds: ["aws"],
+    iac: ["cdk"],
   });
   const result = generate(answers);
 
@@ -927,7 +938,7 @@ describe("generate (full config)", () => {
 
 // --- Pattern 9: Python + Terraform ---
 describe("generate (python + terraform)", () => {
-  const answers = makeAnswers({ languages: ["python"], iac: "terraform" });
+  const answers = makeAnswers({ languages: ["python"], clouds: ["aws"], iac: ["terraform"] });
   const result = generate(answers);
 
   it("includes Python and Terraform files", () => {
@@ -959,7 +970,7 @@ describe("generate (python + terraform)", () => {
 
 // --- Pattern 10: Python + CloudFormation ---
 describe("generate (python + cloudformation)", () => {
-  const answers = makeAnswers({ languages: ["python"], iac: "cloudformation" });
+  const answers = makeAnswers({ languages: ["python"], clouds: ["aws"], iac: ["cloudformation"] });
   const result = generate(answers);
 
   it("includes Python and CloudFormation files", () => {
@@ -1003,15 +1014,32 @@ describe("file list snapshots", () => {
     { name: "python", answers: { languages: ["python"] } },
     { name: "typescript + python", answers: { languages: ["typescript", "python"] } },
     { name: "react", answers: { frontend: "react" } },
-    { name: "cdk", answers: { iac: "cdk" } },
-    { name: "cloudformation (ts)", answers: { languages: ["typescript"], iac: "cloudformation" } },
-    { name: "terraform (ts)", answers: { languages: ["typescript"], iac: "terraform" } },
+    { name: "cdk", answers: { clouds: ["aws"], iac: ["cdk"] } },
+    {
+      name: "cloudformation (ts)",
+      answers: { languages: ["typescript"], clouds: ["aws"], iac: ["cloudformation"] },
+    },
+    {
+      name: "terraform (ts)",
+      answers: { languages: ["typescript"], clouds: ["aws"], iac: ["terraform"] },
+    },
     {
       name: "full config",
-      answers: { languages: ["typescript", "python"], frontend: "react", iac: "cdk" },
+      answers: {
+        languages: ["typescript", "python"],
+        frontend: "react",
+        clouds: ["aws"],
+        iac: ["cdk"],
+      },
     },
-    { name: "python + terraform", answers: { languages: ["python"], iac: "terraform" } },
-    { name: "python + cloudformation", answers: { languages: ["python"], iac: "cloudformation" } },
+    {
+      name: "python + terraform",
+      answers: { languages: ["python"], clouds: ["aws"], iac: ["terraform"] },
+    },
+    {
+      name: "python + cloudformation",
+      answers: { languages: ["python"], clouds: ["aws"], iac: ["cloudformation"] },
+    },
   ];
 
   for (const { name, answers } of patterns) {

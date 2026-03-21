@@ -12,7 +12,14 @@ import { generate } from "../src/generator.js";
 import type { WizardAnswers } from "../src/types.js";
 
 function makeAnswers(overrides: Partial<WizardAnswers> = {}): WizardAnswers {
-  return { projectName: "verify-app", languages: [], frontend: "none", iac: "none", ...overrides };
+  return {
+    projectName: "verify-app",
+    languages: [],
+    frontend: "none",
+    clouds: [],
+    iac: [],
+    ...overrides,
+  };
 }
 
 // Helper to parse and validate JSON files
@@ -189,8 +196,8 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "cdk",
-    answers: { iac: "cdk" },
+    name: "aws + cdk",
+    answers: { clouds: ["aws"], iac: ["cdk"] },
     vscodeSettings: {
       mustInclude: ["biomejs.biome", "**/cdk.out", "**/dist"],
       mustExclude: ["charliermarsh.ruff", "mypy-type-checker"],
@@ -215,8 +222,8 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "cloudformation (ts)",
-    answers: { languages: ["typescript"], iac: "cloudformation" },
+    name: "aws + cloudformation (ts)",
+    answers: { languages: ["typescript"], clouds: ["aws"], iac: ["cloudformation"] },
     vscodeSettings: {
       mustInclude: ["biomejs.biome"],
       mustExclude: ["cdk.out", "charliermarsh.ruff"],
@@ -237,8 +244,8 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "terraform (ts)",
-    answers: { languages: ["typescript"], iac: "terraform" },
+    name: "aws + terraform (ts)",
+    answers: { languages: ["typescript"], clouds: ["aws"], iac: ["terraform"] },
     vscodeSettings: {
       mustInclude: ["biomejs.biome"],
       mustExclude: ["cdk.out", "charliermarsh.ruff"],
@@ -259,8 +266,8 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "bicep (ts)",
-    answers: { languages: ["typescript"], iac: "bicep" },
+    name: "azure + bicep (ts)",
+    answers: { languages: ["typescript"], clouds: ["azure"], iac: ["bicep"] },
     vscodeSettings: {
       mustInclude: ["biomejs.biome"],
       mustExclude: ["cdk.out", "charliermarsh.ruff"],
@@ -281,8 +288,30 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "bicep (python)",
-    answers: { languages: ["python"], iac: "bicep" },
+    name: "azure + terraform (ts)",
+    answers: { languages: ["typescript"], clouds: ["azure"], iac: ["terraform"] },
+    vscodeSettings: {
+      mustInclude: ["biomejs.biome"],
+      mustExclude: ["cdk.out", "charliermarsh.ruff"],
+    },
+    vscodeExtensions: {
+      mustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      mustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
+    },
+    devcontainer: {
+      extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      extensionsMustExclude: ["amazonwebservices.aws-toolkit-vscode", "ms-azuretools.vscode-bicep"],
+      mountsMustInclude: ["pnpm-store", ".azure"],
+      mountsMustExclude: [".aws", "uv-cache"],
+    },
+    packageJson: {
+      scriptsMustInclude: ["lint", "typecheck", "lint:tf"],
+      scriptsMustExclude: ["lint:python", "lint:cfn", "cdk:synth", "lint:bicep"],
+    },
+  },
+  {
+    name: "azure + bicep (python)",
+    answers: { languages: ["python"], clouds: ["azure"], iac: ["bicep"] },
     vscodeSettings: {
       mustInclude: ["charliermarsh.ruff"],
       mustExclude: ["biomejs.biome", "cdk.out"],
@@ -307,8 +336,35 @@ const patterns: PatternDef[] = [
     },
   },
   {
-    name: "full config (ts + python + react + cdk)",
-    answers: { languages: ["typescript", "python"], frontend: "react", iac: "cdk" },
+    name: "aws + azure + terraform + bicep (ts)",
+    answers: { languages: ["typescript"], clouds: ["aws", "azure"], iac: ["terraform", "bicep"] },
+    vscodeSettings: {
+      mustInclude: ["biomejs.biome"],
+      mustExclude: ["cdk.out", "charliermarsh.ruff"],
+    },
+    vscodeExtensions: {
+      mustInclude: [...COMMON_EXTENSIONS, "biomejs.biome", "ms-azuretools.vscode-bicep"],
+      mustExclude: [],
+    },
+    devcontainer: {
+      extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome", "ms-azuretools.vscode-bicep"],
+      extensionsMustExclude: [],
+      mountsMustInclude: ["pnpm-store", ".aws", ".azure"],
+      mountsMustExclude: ["uv-cache"],
+    },
+    packageJson: {
+      scriptsMustInclude: ["lint", "typecheck", "lint:tf", "lint:bicep"],
+      scriptsMustExclude: ["lint:python", "lint:cfn"],
+    },
+  },
+  {
+    name: "full config (ts + python + react + aws + cdk)",
+    answers: {
+      languages: ["typescript", "python"],
+      frontend: "react",
+      clouds: ["aws"],
+      iac: ["cdk"],
+    },
     vscodeSettings: {
       mustInclude: ["biomejs.biome", "charliermarsh.ruff", "**/cdk.out", "**/dist"],
       mustExclude: [],

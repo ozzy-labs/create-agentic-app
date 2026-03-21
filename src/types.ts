@@ -4,7 +4,8 @@ export interface WizardAnswers {
   projectName: string;
   languages: Array<"typescript" | "python">;
   frontend: "none" | "react";
-  iac: "none" | "cdk" | "cloudformation" | "terraform" | "bicep";
+  clouds: Array<"aws" | "azure">;
+  iac: Array<"cdk" | "cloudformation" | "terraform" | "bicep">;
 }
 
 // --- Markdown template ---

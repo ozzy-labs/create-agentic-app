@@ -49,26 +49,55 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
   });
   handleCancel(frontend);
 
-  const iac = await p.select({
-    message: `${t("wizard.iac.message")} ${pc.dim(t("wizard.iac.hint"))}`,
+  const clouds = await p.multiselect({
+    message: `${t("wizard.clouds.message")} ${pc.dim(t("wizard.clouds.hint"))}`,
     options: [
-      { value: "none" as const, label: t("wizard.iac.none.label") },
-      {
-        value: "cdk" as const,
-        label: t("wizard.iac.cdk.label"),
-        hint: t("wizard.iac.cdk.hint"),
-      },
-      { value: "cloudformation" as const, label: t("wizard.iac.cloudformation.label") },
-      { value: "terraform" as const, label: t("wizard.iac.terraform.label") },
-      { value: "bicep" as const, label: t("wizard.iac.bicep.label") },
+      { value: "aws" as const, label: t("wizard.clouds.aws.label") },
+      { value: "azure" as const, label: t("wizard.clouds.azure.label") },
     ],
+    required: false,
   });
-  handleCancel(iac);
+  handleCancel(clouds);
+
+  const selectedClouds = clouds as WizardAnswers["clouds"];
+  let iac: WizardAnswers["iac"] = [];
+
+  if (selectedClouds.length > 0) {
+    type IacValue = "cdk" | "cloudformation" | "terraform" | "bicep";
+    const iacOptions: Array<{ value: IacValue; label: string; hint?: string }> = [];
+
+    if (selectedClouds.includes("aws")) {
+      iacOptions.push(
+        { value: "cdk", label: t("wizard.iac.cdk.label"), hint: t("wizard.iac.cdk.hint") },
+        { value: "cloudformation", label: t("wizard.iac.cloudformation.label") },
+      );
+    }
+    if (selectedClouds.includes("aws") || selectedClouds.includes("azure")) {
+      // Avoid duplicate if both clouds selected
+      if (!iacOptions.some((o) => o.value === "terraform")) {
+        iacOptions.push({ value: "terraform", label: t("wizard.iac.terraform.label") });
+      }
+    }
+    if (selectedClouds.includes("azure")) {
+      iacOptions.push({ value: "bicep", label: t("wizard.iac.bicep.label") });
+    }
+
+    if (iacOptions.length > 0) {
+      const iacAnswer = await p.multiselect({
+        message: `${t("wizard.iac.message")} ${pc.dim(t("wizard.iac.hint"))}`,
+        options: iacOptions,
+        required: false,
+      });
+      handleCancel(iacAnswer);
+      iac = iacAnswer as WizardAnswers["iac"];
+    }
+  }
 
   return {
     projectName: (projectName as string).trim(),
     languages: languages as WizardAnswers["languages"],
     frontend: frontend as WizardAnswers["frontend"],
-    iac: iac as WizardAnswers["iac"],
+    clouds: selectedClouds,
+    iac,
   };
 }

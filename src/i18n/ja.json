@@ -20,10 +20,15 @@
       "none": { "label": "なし" },
       "react": { "label": "React (Vite)", "hint": "TypeScript が強制されます" }
     },
+    "clouds": {
+      "message": "クラウドプロバイダー",
+      "hint": "使用するクラウドプロバイダーを選択",
+      "aws": { "label": "AWS" },
+      "azure": { "label": "Azure" }
+    },
     "iac": {
       "message": "Infrastructure as Code",
-      "hint": "クラウド IaC ツールを選択（不要なら None）",
-      "none": { "label": "なし" },
+      "hint": "IaC ツールを選択",
       "cdk": { "label": "AWS CDK", "hint": "TypeScript が強制されます" },
       "cloudformation": { "label": "CloudFormation" },
       "terraform": { "label": "Terraform" },

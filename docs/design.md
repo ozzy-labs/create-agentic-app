@@ -11,18 +11,19 @@
 
 ## Wizard Selections
 
-4 questions only. Only ask what fundamentally changes project structure.
+5 questions only. Only ask what fundamentally changes project structure.
 
 | # | Question | Type | Options |
 |---|----------|------|---------|
 | 1 | Project name | Text input | — |
 | 2 | Language toolchains | Multi-select | TypeScript / Python |
 | 3 | Frontend app | Single-select | None / React (Vite) |
-| 4 | Infrastructure as Code | Single-select | None / AWS CDK / CloudFormation / Terraform / Bicep (Azure) |
+| 4 | Cloud providers | Multi-select | AWS / Azure |
+| 5 | Infrastructure as Code | Multi-select | None / AWS CDK / CloudFormation / Terraform / Bicep (Azure) (filtered by selected cloud providers) |
 
 ## Presets
 
-8 presets, mapped 1:1 to wizard selections.
+10 presets, mapped 1:1 to wizard selections.
 
 | Preset | Trigger | Requires |
 |--------|---------|----------|
@@ -30,12 +31,14 @@
 | `typescript` | Language: TypeScript | — |
 | `python` | Language: Python | — |
 | `react` | Frontend: React | `typescript` (forced) |
+| `aws` | Cloud: AWS | — |
+| `azure` | Cloud: Azure | — |
 | `cdk` | IaC: AWS CDK | `typescript` (forced) |
 | `cloudformation` | IaC: CloudFormation | — |
 | `terraform` | IaC: Terraform | — |
 | `bicep` | IaC: Bicep (Azure) | — |
 
-Application order: `base → typescript → python → react → cdk / cloudformation / terraform / bicep`
+Application order: `base → typescript → python → react → aws → azure → cdk → cloudformation → terraform → bicep`
 
 ### Always Included (base)
 
@@ -89,6 +92,24 @@ Application order: `base → typescript → python → react → cdk / cloudform
 
 **React (Vite)** — adds: Vite + React dependencies, configuration, boilerplate
 
+### Cloud Provider Selection
+
+**AWS** — adds:
+
+| Element | Files |
+|---------|-------|
+| AWS CLI | via mise |
+| MCP: AWS IaC | `.mcp.json` (auto-added) |
+| devcontainer: ~/.aws mount | `.devcontainer/devcontainer.json` (merge) |
+
+**Azure** — adds:
+
+| Element | Files |
+|---------|-------|
+| Azure CLI | via mise (`pipx:azure-cli`) |
+| MCP: Azure | `.mcp.json` (auto-added) |
+| devcontainer: ~/.azure mount | `.devcontainer/devcontainer.json` (merge) |
+
 ### IaC Selection
 
 **AWS CDK** (forces TypeScript) — adds:
@@ -99,10 +120,9 @@ Application order: `base → typescript → python → react → cdk / cloudform
 | cfn-lint | `.cfnlintrc.yaml` |
 | cdk-nag | `infra/package.json` (dependency) |
 | CD workflow | `.github/workflows/cd.yaml` |
-| MCP: AWS IaC | `.mcp.json` (auto-added) |
 | VSCode: cdk.out search exclude | `.vscode/settings.json` (merge) |
 | VSCode: AWS Toolkit extension | `.vscode/extensions.json` (merge) |
-| devcontainer: AWS Toolkit extension, ~/.aws mount | `.devcontainer/devcontainer.json` (merge) |
+| devcontainer: AWS Toolkit extension | `.devcontainer/devcontainer.json` (merge) |
 
 **CloudFormation** — adds:
 
@@ -111,8 +131,6 @@ Application order: `base → typescript → python → react → cdk / cloudform
 | CFn templates directory | `infra/` (template files) |
 | cfn-lint | `.cfnlintrc.yaml` |
 | CD workflow | `.github/workflows/cd.yaml` |
-| MCP: AWS IaC | `.mcp.json` (auto-added) |
-| devcontainer: ~/.aws mount | `.devcontainer/devcontainer.json` (merge) |
 
 **Terraform** — adds:
 
@@ -121,8 +139,6 @@ Application order: `base → typescript → python → react → cdk / cloudform
 | tflint | `.tflint.hcl` |
 | terraform | via mise |
 | CD workflow | `.github/workflows/cd.yaml` |
-| MCP: AWS IaC | `.mcp.json` (auto-added) |
-| devcontainer: ~/.aws mount | `.devcontainer/devcontainer.json` (merge) |
 
 **Bicep (Azure)** — adds:
 
@@ -130,11 +146,9 @@ Application order: `base → typescript → python → react → cdk / cloudform
 |---------|-------|
 | Bicep templates directory | `infra/` (main.bicep) |
 | bicepconfig.json | `bicepconfig.json` |
-| Azure CLI | via mise (`pipx:azure-cli`) |
 | CD workflow | `.github/workflows/cd.yaml` |
-| MCP: Azure | `.mcp.json` (auto-added) |
 | VSCode: Bicep extension | `.vscode/extensions.json` (merge) |
-| devcontainer: Bicep extension, ~/.azure mount | `.devcontainer/devcontainer.json` (merge) |
+| devcontainer: Bicep extension | `.devcontainer/devcontainer.json` (merge) |
 
 ## Preset Composition
 
@@ -148,14 +162,14 @@ Application order: `base → typescript → python → react → cdk / cloudform
 | Shared file | Modified by |
 |-------------|-------------|
 | `package.json` | base, typescript, python, react, cdk, bicep |
-| `.mise.toml` | base, typescript, python, cdk, cloudformation, terraform, bicep |
+| `.mise.toml` | base, typescript, python, aws, azure, cdk, cloudformation, terraform |
 | `lefthook.yaml` | base, typescript, python |
 | `.github/workflows/ci.yaml` | base, typescript, python, cdk, cloudformation, terraform, bicep |
 | `.github/workflows/cd.yaml` | cdk, cloudformation, terraform, bicep |
-| `.mcp.json` | base, cdk, cloudformation, terraform, bicep |
+| `.mcp.json` | base, aws, azure |
 | `.vscode/settings.json` | typescript, python, cdk |
 | `.vscode/extensions.json` | typescript, python, cdk, bicep |
-| `.devcontainer/devcontainer.json` | typescript, python, cdk, cloudformation, terraform, bicep |
+| `.devcontainer/devcontainer.json` | typescript, python, aws, azure, cdk, bicep |
 | `CLAUDE.md` | all presets |
 | `README.md` | all presets |
 
@@ -194,13 +208,16 @@ React ──────→ TypeScript (forced)
 AWS CDK ────→ TypeScript (forced)
            └→ cfn-lint + cdk-nag
            └→ CD workflow
-           └→ MCP: AWS IaC
 CloudFormation → cfn-lint
               └→ CD workflow
-              └→ MCP: AWS IaC
 Terraform ──→ tflint
            └→ CD workflow
+AWS ────────→ AWS CLI
            └→ MCP: AWS IaC
+           └→ ~/.aws mount
+Azure ──────→ Azure CLI
+           └→ MCP: Azure
+           └→ ~/.azure mount
 ```
 
 ## Not Included (add manually later)
@@ -237,6 +254,8 @@ create-agentic-dev/
 │       ├── typescript.ts
 │       ├── python.ts
 │       ├── react.ts
+│       ├── aws.ts
+│       ├── azure.ts
 │       ├── cdk.ts
 │       ├── cloudformation.ts
 │       └── terraform.ts
