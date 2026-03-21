@@ -19,7 +19,7 @@
 | 2 | Language toolchains | Multi-select | TypeScript / Python |
 | 3 | Frontend app | Single-select | None / React (Vite) |
 | 4 | Cloud providers | Multi-select | AWS / Azure |
-| 5 | Infrastructure as Code | Multi-select | None / AWS CDK / CloudFormation / Terraform / Bicep (Azure) (filtered by selected cloud providers) |
+| 5 | Infrastructure as Code | Multi-select | None / CDK / CloudFormation / Terraform / Bicep (filtered by selected cloud providers) |
 
 ## Presets
 
@@ -33,9 +33,9 @@
 | `react` | Frontend: React | `typescript` (forced) |
 | `aws` | Cloud: AWS | — |
 | `azure` | Cloud: Azure | — |
-| `cdk` | IaC: AWS CDK | `typescript` (forced) |
-| `cloudformation` | IaC: CloudFormation | — |
-| `terraform` | IaC: Terraform | — |
+| `cdk` | IaC: CDK (AWS) | `typescript` (forced) |
+| `cloudformation` | IaC: CloudFormation (AWS) | — |
+| `terraform` | IaC: Terraform (AWS, Azure) | — |
 | `bicep` | IaC: Bicep (Azure) | — |
 
 Application order: `base → typescript → python → react → aws → azure → cdk → cloudformation → terraform → bicep`
@@ -112,7 +112,7 @@ Application order: `base → typescript → python → react → aws → azure �
 
 ### IaC Selection
 
-**AWS CDK** (forces TypeScript) — adds:
+**CDK** (AWS, forces TypeScript) — adds:
 
 | Element | Files |
 |---------|-------|
@@ -140,7 +140,7 @@ Application order: `base → typescript → python → react → aws → azure �
 | terraform | via mise |
 | CD workflow | `.github/workflows/cd.yaml` |
 
-**Bicep (Azure)** — adds:
+**Bicep** (Azure) — adds:
 
 | Element | Files |
 |---------|-------|
@@ -205,7 +205,7 @@ interface Preset {
 
 ```text
 React ──────→ TypeScript (forced)
-AWS CDK ────→ TypeScript (forced)
+CDK ────────→ TypeScript (forced)
            └→ cfn-lint + cdk-nag
            └→ CD workflow
 CloudFormation → cfn-lint
