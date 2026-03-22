@@ -24,7 +24,7 @@ export const nextjsPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **Frontend**: Next.js 15 (App Router)",

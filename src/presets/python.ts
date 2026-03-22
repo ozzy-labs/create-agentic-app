@@ -66,7 +66,7 @@ export const pythonPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **Language**: Python 3.12+ (uv)",

@@ -17,7 +17,7 @@ export const reactPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **Frontend**: React 19 + Vite",

@@ -29,7 +29,7 @@ export const awsPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
         content: "AWS IaC",

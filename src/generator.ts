@@ -267,11 +267,24 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   const markdownSections = new Map<string, MarkdownSection[]>();
   for (const preset of presets) {
     if (!preset.markdown) continue;
-    for (const [filePath, sections] of Object.entries(preset.markdown)) {
-      const existing = markdownSections.get(filePath) ?? [];
+    for (const [key, sections] of Object.entries(preset.markdown)) {
+      const existing = markdownSections.get(key) ?? [];
       existing.push(...sections);
-      markdownSections.set(filePath, existing);
+      markdownSections.set(key, existing);
     }
+  }
+
+  // 3.1. Distribute "agent-instructions" sections to instruction file templates.
+  // Currently only CLAUDE.md; future agent presets will register additional targets.
+  const INSTRUCTION_TARGETS = ["CLAUDE.md"];
+  const agentSections = markdownSections.get("agent-instructions");
+  if (agentSections) {
+    for (const target of INSTRUCTION_TARGETS) {
+      const existing = markdownSections.get(target) ?? [];
+      existing.push(...agentSections);
+      markdownSections.set(target, existing);
+    }
+    markdownSections.delete("agent-instructions");
   }
 
   // Pre-process: collapse INFRA_STRUCTURE / INFRA_DIR_STRUCTURE into single lines

@@ -81,7 +81,7 @@ export const typescriptPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: '- **Language**: TypeScript (ESM, strict mode, `"type": "module"`)',

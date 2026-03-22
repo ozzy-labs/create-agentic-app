@@ -23,7 +23,7 @@ export const gcpPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK_MCP -->",
         content: "Google Cloud",

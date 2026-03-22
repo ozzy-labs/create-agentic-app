@@ -66,7 +66,7 @@ export const cdkPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **IaC**: AWS CDK v2 (TypeScript)",
