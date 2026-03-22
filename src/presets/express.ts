@@ -31,7 +31,7 @@ export const expressPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **Backend**: Express (TypeScript, tsdown)",

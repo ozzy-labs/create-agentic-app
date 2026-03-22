@@ -30,7 +30,7 @@ export const terraformPreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [
+    "agent-instructions": [
       {
         placeholder: "<!-- SECTION:TECH_STACK -->",
         content: "- **IaC**: Terraform",

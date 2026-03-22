@@ -92,7 +92,7 @@ export const basePreset: Preset = {
     },
   },
   markdown: {
-    "CLAUDE.md": [],
+    "agent-instructions": [],
     "README.md": [],
   },
   ciSteps: {
