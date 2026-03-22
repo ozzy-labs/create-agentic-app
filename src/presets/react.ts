@@ -31,10 +31,6 @@ export const reactPreset: Preset = {
         content: "pnpm --filter web install # Install frontend dependencies",
       },
       {
-        placeholder: "<!-- SECTION:LINT_COMMANDS -->",
-        content: "pnpm run build:web         # Vite production build",
-      },
-      {
         placeholder: "<!-- SECTION:TEST_COMMANDS -->",
         content: "pnpm --filter web test     # Run frontend tests",
       },

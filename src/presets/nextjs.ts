@@ -38,10 +38,6 @@ export const nextjsPreset: Preset = {
         content: "pnpm --filter web install # Install frontend dependencies",
       },
       {
-        placeholder: "<!-- SECTION:LINT_COMMANDS -->",
-        content: "pnpm run build:web         # Next.js production build",
-      },
-      {
         placeholder: "<!-- SECTION:TEST_COMMANDS -->",
         content: "pnpm --filter web test     # Run frontend tests",
       },
