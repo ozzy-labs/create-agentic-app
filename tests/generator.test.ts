@@ -588,17 +588,23 @@ describe("generate (react)", () => {
     expect(result.hasFile("tsconfig.json")).toBe(true);
   });
 
-  it("includes React owned files", () => {
-    expect(result.hasFile("vite.config.ts")).toBe(true);
-    expect(result.hasFile("index.html")).toBe(true);
-    expect(result.hasFile("src/main.tsx")).toBe(true);
-    expect(result.hasFile("src/App.tsx")).toBe(true);
-    expect(result.hasFile("src/App.css")).toBe(true);
-    expect(result.hasFile("src/vite-env.d.ts")).toBe(true);
+  it("includes React owned files in web/", () => {
+    expect(result.hasFile("web/vite.config.ts")).toBe(true);
+    expect(result.hasFile("web/index.html")).toBe(true);
+    expect(result.hasFile("web/src/main.tsx")).toBe(true);
+    expect(result.hasFile("web/src/App.tsx")).toBe(true);
+    expect(result.hasFile("web/src/App.css")).toBe(true);
+    expect(result.hasFile("web/src/vite-env.d.ts")).toBe(true);
+    expect(result.hasFile("web/package.json")).toBe(true);
   });
 
-  it("merges React dependencies into package.json", () => {
-    const pkg = result.readJson("package.json") as Record<string, unknown>;
+  it("removes TypeScript sample files (replaced by web/)", () => {
+    expect(result.hasFile("src/index.ts")).toBe(false);
+    expect(result.hasFile("tests/index.test.ts")).toBe(false);
+  });
+
+  it("has React dependencies in web/package.json", () => {
+    const pkg = result.readJson("web/package.json") as Record<string, unknown>;
     const deps = pkg.dependencies as Record<string, string>;
     expect(deps.react).toBeDefined();
     expect(deps["react-dom"]).toBeDefined();
@@ -607,17 +613,18 @@ describe("generate (react)", () => {
     expect(devDeps["@vitejs/plugin-react"]).toBeDefined();
     expect(devDeps["@types/react"]).toBeDefined();
     expect(devDeps["@types/react-dom"]).toBeDefined();
-    // TypeScript devDeps also present
-    expect(devDeps.typescript).toBeDefined();
   });
 
-  it("React overrides TypeScript build script with vite", () => {
+  it("root package.json has orchestration scripts", () => {
     const pkg = result.readJson("package.json") as Record<string, unknown>;
     const scripts = pkg.scripts as Record<string, string>;
-    // React preset's build/dev override TypeScript's (applied later in order)
-    expect(scripts.build).toBe("vite build");
-    expect(scripts.dev).toBe("vite");
-    expect(scripts.preview).toBe("vite preview");
+    expect(scripts.build).toBe("pnpm run build:web");
+    expect(scripts["build:web"]).toBe("pnpm --filter web build");
+    expect(scripts.dev).toBe("pnpm --filter web dev");
+    expect(scripts.preview).toBe("pnpm --filter web preview");
+    // TypeScript devDeps still present in root
+    const devDeps = pkg.devDependencies as Record<string, string>;
+    expect(devDeps.typescript).toBeDefined();
   });
 
   it("removes tsdown from devDependencies when not used in scripts", () => {
@@ -626,16 +633,20 @@ describe("generate (react)", () => {
     expect(devDeps.tsdown).toBeUndefined();
   });
 
-  it("overrides tsconfig module resolution to bundler for Vite", () => {
+  it("overrides tsconfig for React with web/ paths", () => {
     const tsconfig = result.readJson("tsconfig.json") as Record<string, unknown>;
     const compilerOptions = tsconfig.compilerOptions as Record<string, unknown>;
     expect(compilerOptions.module).toBe("ESNext");
     expect(compilerOptions.moduleResolution).toBe("bundler");
     expect(compilerOptions.jsx).toBe("react-jsx");
+    const include = tsconfig.include as string[];
+    expect(include).toContain("web/src");
+    expect(include).toContain("web/tests");
+    expect(include).not.toContain("src");
   });
 
   it("App.tsx imports App.css", () => {
-    const appTsx = result.readText("src/App.tsx");
+    const appTsx = result.readText("web/src/App.tsx");
     expect(appTsx).toContain("./App.css");
   });
 
@@ -651,13 +662,10 @@ describe("generate (react)", () => {
     expect(stepNames).not.toContain("Build (Vite)");
   });
 
-  it("overrides TypeScript sample files with React-appropriate versions", () => {
-    const indexTs = result.readText("src/index.ts");
-    expect(indexTs).toContain("App");
-    expect(indexTs).not.toContain("hello");
-
-    const testFile = result.readText("tests/index.test.ts");
-    expect(testFile).toContain("App");
+  it("generates pnpm-workspace.yaml with web", () => {
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
+    const workspace = result.readText("pnpm-workspace.yaml");
+    expect(workspace).toContain("- web");
   });
 
   it("expands CLAUDE.md with React sections", () => {
@@ -668,7 +676,7 @@ describe("generate (react)", () => {
   });
 
   it("replaces {{projectName}} in React templates", () => {
-    const html = result.readText("index.html");
+    const html = result.readText("web/index.html");
     expect(html).toContain("test-app");
     expect(html).not.toContain("{{projectName}}");
   });
@@ -684,15 +692,21 @@ describe("generate (nextjs)", () => {
     expect(result.hasFile("tsconfig.json")).toBe(true);
   });
 
-  it("includes Next.js owned files", () => {
-    expect(result.hasFile("next.config.ts")).toBe(true);
-    expect(result.hasFile("src/app/layout.tsx")).toBe(true);
-    expect(result.hasFile("src/app/page.tsx")).toBe(true);
-    expect(result.hasFile("src/app/page.module.css")).toBe(true);
+  it("includes Next.js owned files in web/", () => {
+    expect(result.hasFile("web/next.config.ts")).toBe(true);
+    expect(result.hasFile("web/src/app/layout.tsx")).toBe(true);
+    expect(result.hasFile("web/src/app/page.tsx")).toBe(true);
+    expect(result.hasFile("web/src/app/page.module.css")).toBe(true);
+    expect(result.hasFile("web/package.json")).toBe(true);
   });
 
-  it("merges Next.js dependencies into package.json", () => {
-    const pkg = result.readJson("package.json") as Record<string, unknown>;
+  it("removes TypeScript sample files (replaced by web/)", () => {
+    expect(result.hasFile("src/index.ts")).toBe(false);
+    expect(result.hasFile("tests/index.test.ts")).toBe(false);
+  });
+
+  it("has Next.js dependencies in web/package.json", () => {
+    const pkg = result.readJson("web/package.json") as Record<string, unknown>;
     const deps = pkg.dependencies as Record<string, string>;
     expect(deps.react).toBeDefined();
     expect(deps["react-dom"]).toBeDefined();
@@ -700,15 +714,17 @@ describe("generate (nextjs)", () => {
     const devDeps = pkg.devDependencies as Record<string, string>;
     expect(devDeps["@types/react"]).toBeDefined();
     expect(devDeps["@types/react-dom"]).toBeDefined();
-    expect(devDeps.typescript).toBeDefined();
   });
 
-  it("Next.js overrides TypeScript build script", () => {
+  it("root package.json has orchestration scripts", () => {
     const pkg = result.readJson("package.json") as Record<string, unknown>;
     const scripts = pkg.scripts as Record<string, string>;
-    expect(scripts.build).toBe("next build");
-    expect(scripts.dev).toBe("next dev");
-    expect(scripts.start).toBe("next start");
+    expect(scripts.build).toBe("pnpm run build:web");
+    expect(scripts["build:web"]).toBe("pnpm --filter web build");
+    expect(scripts.dev).toBe("pnpm --filter web dev");
+    expect(scripts.start).toBe("pnpm --filter web start");
+    const devDeps = pkg.devDependencies as Record<string, string>;
+    expect(devDeps.typescript).toBeDefined();
   });
 
   it("removes tsdown from devDependencies when not used in scripts", () => {
@@ -717,7 +733,7 @@ describe("generate (nextjs)", () => {
     expect(devDeps.tsdown).toBeUndefined();
   });
 
-  it("overrides tsconfig for Next.js", () => {
+  it("overrides tsconfig for Next.js with web/ paths", () => {
     const tsconfig = result.readJson("tsconfig.json") as Record<string, unknown>;
     const compilerOptions = tsconfig.compilerOptions as Record<string, unknown>;
     expect(compilerOptions.jsx).toBe("preserve");
@@ -731,8 +747,10 @@ describe("generate (nextjs)", () => {
     const plugins = compilerOptions.plugins as Array<Record<string, string>>;
     expect(plugins).toContainEqual({ name: "next" });
     const include = tsconfig.include as string[];
-    expect(include).toContain("next-env.d.ts");
-    expect(include).toContain(".next/types/**/*.ts");
+    expect(include).toContain("web/next-env.d.ts");
+    expect(include).toContain("web/.next/types/**/*.ts");
+    expect(include).toContain("web/src");
+    expect(include).not.toContain("src");
   });
 
   it("has TypeScript CI steps (Next.js uses TS build step via script override)", () => {
@@ -745,13 +763,10 @@ describe("generate (nextjs)", () => {
     expect(stepNames).toContain("Build");
   });
 
-  it("overrides TypeScript sample files with Next.js versions", () => {
-    const indexTs = result.readText("src/index.ts");
-    expect(indexTs).toContain("APP_NAME");
-    expect(indexTs).not.toContain("hello");
-
-    const testFile = result.readText("tests/index.test.ts");
-    expect(testFile).toContain("APP_NAME");
+  it("generates pnpm-workspace.yaml with web", () => {
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
+    const workspace = result.readText("pnpm-workspace.yaml");
+    expect(workspace).toContain("- web");
   });
 
   it("expands CLAUDE.md with Next.js sections", () => {
@@ -761,7 +776,7 @@ describe("generate (nextjs)", () => {
   });
 
   it("replaces {{projectName}} in Next.js templates", () => {
-    const layout = result.readText("src/app/layout.tsx");
+    const layout = result.readText("web/src/app/layout.tsx");
     expect(layout).toContain("test-app");
     expect(layout).not.toContain("{{projectName}}");
   });
@@ -788,10 +803,10 @@ describe("generate (nextjs)", () => {
   });
 
   it("does not include React+Vite specific files", () => {
-    expect(result.hasFile("vite.config.ts")).toBe(false);
-    expect(result.hasFile("index.html")).toBe(false);
-    expect(result.hasFile("src/App.tsx")).toBe(false);
-    expect(result.hasFile("src/vite-env.d.ts")).toBe(false);
+    expect(result.hasFile("web/vite.config.ts")).toBe(false);
+    expect(result.hasFile("web/index.html")).toBe(false);
+    expect(result.hasFile("web/src/App.tsx")).toBe(false);
+    expect(result.hasFile("web/src/vite-env.d.ts")).toBe(false);
   });
 });
 
@@ -1036,9 +1051,10 @@ describe("generate (full config)", () => {
     expect(result.hasFile("biome.json")).toBe(true);
     // Python
     expect(result.hasFile("pyproject.toml")).toBe(true);
-    // React
-    expect(result.hasFile("vite.config.ts")).toBe(true);
-    expect(result.hasFile("index.html")).toBe(true);
+    // React (in web/)
+    expect(result.hasFile("web/vite.config.ts")).toBe(true);
+    expect(result.hasFile("web/index.html")).toBe(true);
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
     // CDK
     expect(result.hasFile("infra/bin/app.ts")).toBe(true);
     expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);

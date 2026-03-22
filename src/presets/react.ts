@@ -6,29 +6,13 @@ export const reactPreset: Preset = {
   requires: ["typescript"],
   files: readTemplateFiles("react"),
   merge: {
-    ".gitignore": "# React + Vite\n!src/vite-env.d.ts",
-    "tsconfig.json": {
-      compilerOptions: {
-        module: "ESNext",
-        moduleResolution: "bundler",
-        jsx: "react-jsx",
-      },
-    },
+    ".gitignore": "# React + Vite\n!web/src/vite-env.d.ts",
     "package.json": {
       scripts: {
-        dev: "vite",
-        build: "vite build",
-        preview: "vite preview",
-      },
-      dependencies: {
-        react: "^19.0.0",
-        "react-dom": "^19.0.0",
-      },
-      devDependencies: {
-        vite: "^6.0.0",
-        "@vitejs/plugin-react": "^4.0.0",
-        "@types/react": "^19.0.0",
-        "@types/react-dom": "^19.0.0",
+        dev: "pnpm --filter web dev",
+        build: "pnpm run build:web",
+        "build:web": "pnpm --filter web build",
+        preview: "pnpm --filter web preview",
       },
     },
   },
@@ -40,21 +24,16 @@ export const reactPreset: Preset = {
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",
-        content: "src/          -> Source code",
+        content: "web/          -> Frontend (React + Vite)",
       },
     ],
     "README.md": [
       {
         placeholder: "<!-- SECTION:DIR_STRUCTURE -->",
-        content: "├── src/                 # ソースコード",
-      },
-      {
-        placeholder: "<!-- SECTION:ROOT_FILES -->",
-        content:
-          "├── vite.config.ts       # Vite 設定\n├── index.html           # HTML エントリポイント",
+        content: "├── web/                 # フロントエンド (React + Vite)",
       },
     ],
   },
   // No ciSteps needed — TypeScript's "Build" step runs `pnpm run build`,
-  // which executes `vite build` since React overrides the build script.
+  // which executes `pnpm run build:web` since React overrides the build script.
 };

@@ -14,34 +14,12 @@ export const nextjsPreset: Preset = {
       "search.exclude": { "**/.next": true },
       "files.exclude": { "**/.next": true },
     },
-    "tsconfig.json": {
-      compilerOptions: {
-        lib: ["dom", "dom.iterable", "esnext"],
-        jsx: "preserve",
-        module: "ESNext",
-        moduleResolution: "bundler",
-        noEmit: true,
-        incremental: true,
-        plugins: [{ name: "next" }],
-        allowJs: true,
-      },
-      include: ["next-env.d.ts", ".next/types/**/*.ts"],
-      exclude: [".next"],
-    },
     "package.json": {
       scripts: {
-        dev: "next dev",
-        build: "next build",
-        start: "next start",
-      },
-      dependencies: {
-        react: "^19.0.0",
-        "react-dom": "^19.0.0",
-        next: "^15.0.0",
-      },
-      devDependencies: {
-        "@types/react": "^19.0.0",
-        "@types/react-dom": "^19.0.0",
+        dev: "pnpm --filter web dev",
+        build: "pnpm run build:web",
+        "build:web": "pnpm --filter web build",
+        start: "pnpm --filter web start",
       },
     },
   },
@@ -53,20 +31,16 @@ export const nextjsPreset: Preset = {
       },
       {
         placeholder: "<!-- SECTION:PROJECT_STRUCTURE -->",
-        content: "src/app/      -> Next.js App Router pages",
+        content: "web/          -> Frontend (Next.js App Router)",
       },
     ],
     "README.md": [
       {
         placeholder: "<!-- SECTION:DIR_STRUCTURE -->",
-        content: "├── src/app/             # Next.js App Router ページ",
-      },
-      {
-        placeholder: "<!-- SECTION:ROOT_FILES -->",
-        content: "├── next.config.ts       # Next.js 設定",
+        content: "├── web/                 # フロントエンド (Next.js App Router)",
       },
     ],
   },
   // No ciSteps needed — TypeScript's "Build" step runs `pnpm run build`,
-  // which executes `next build` since Next.js overrides the build script.
+  // which executes `pnpm run build:web` since Next.js overrides the build script.
 };

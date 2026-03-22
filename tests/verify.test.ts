@@ -380,6 +380,36 @@ const patterns: PatternDef[] = [
     },
   },
   {
+    name: "react",
+    answers: { frontend: "react" },
+    vscodeSettings: {
+      mustInclude: ["biomejs.biome", "source.fixAll.biome", "**/dist"],
+      mustExclude: ["charliermarsh.ruff", "mypy-type-checker", "cdk.out"],
+    },
+    vscodeExtensions: {
+      mustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      mustExclude: [
+        "charliermarsh.ruff",
+        "amazonwebservices.aws-toolkit-vscode",
+        "ms-azuretools.vscode-bicep",
+      ],
+    },
+    devcontainer: {
+      extensionsMustInclude: [...COMMON_EXTENSIONS, "biomejs.biome"],
+      extensionsMustExclude: [
+        "charliermarsh.ruff",
+        "amazonwebservices.aws-toolkit-vscode",
+        "ms-azuretools.vscode-bicep",
+      ],
+      mountsMustInclude: ["pnpm-store"],
+      mountsMustExclude: [".aws", ".azure", ".config/gcloud", "uv-cache"],
+    },
+    packageJson: {
+      scriptsMustInclude: ["lint", "typecheck", "test", "build", "build:web"],
+      scriptsMustExclude: ["lint:python", "lint:mypy", "lint:cfn", "lint:tf", "lint:bicep"],
+    },
+  },
+  {
     name: "nextjs",
     answers: { frontend: "nextjs" },
     vscodeSettings: {
@@ -405,7 +435,7 @@ const patterns: PatternDef[] = [
       mountsMustExclude: [".aws", ".azure", ".config/gcloud", "uv-cache"],
     },
     packageJson: {
-      scriptsMustInclude: ["lint", "typecheck", "test", "build"],
+      scriptsMustInclude: ["lint", "typecheck", "test", "build", "build:web"],
       scriptsMustExclude: ["lint:python", "lint:mypy", "lint:cfn", "lint:tf", "lint:bicep"],
     },
   },
@@ -443,7 +473,15 @@ const patterns: PatternDef[] = [
       mountsMustExclude: [],
     },
     packageJson: {
-      scriptsMustInclude: ["lint", "typecheck", "lint:python", "lint:cfn", "lint:tf", "lint:all"],
+      scriptsMustInclude: [
+        "lint",
+        "typecheck",
+        "lint:python",
+        "lint:cfn",
+        "lint:tf",
+        "lint:all",
+        "build:web",
+      ],
       scriptsMustExclude: ["lint:bicep"],
     },
   },
@@ -715,5 +753,43 @@ describe("verify: infra/ structure deduplication", () => {
     expect(infraLines.length, "Should have exactly one infra/ line in dir structure").toBe(1);
     expect(infraLines[0]).toContain("CDK");
     expect(infraLines[0]).toContain("Bicep");
+  });
+});
+
+// --- pnpm workspace structure ---
+
+describe("verify: pnpm workspace", () => {
+  it("generates pnpm-workspace.yaml for React", () => {
+    const result = generate(makeAnswers({ frontend: "react" }));
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
+    const workspace = result.readText("pnpm-workspace.yaml");
+    expect(workspace).toContain("- web");
+  });
+
+  it("generates pnpm-workspace.yaml for Next.js", () => {
+    const result = generate(makeAnswers({ frontend: "nextjs" }));
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
+    const workspace = result.readText("pnpm-workspace.yaml");
+    expect(workspace).toContain("- web");
+  });
+
+  it("does not generate pnpm-workspace.yaml without frontend", () => {
+    const result = generate(makeAnswers({ languages: ["typescript"] }));
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(false);
+  });
+
+  it("React + CDK generates workspace with web only (infra uses independent npm)", () => {
+    const result = generate(makeAnswers({ frontend: "react", clouds: ["aws"], iac: ["cdk"] }));
+    const workspace = result.readText("pnpm-workspace.yaml");
+    expect(workspace).toContain("- web");
+    expect(workspace).not.toContain("- infra");
+  });
+
+  it("frontend removes TypeScript sample files", () => {
+    const result = generate(makeAnswers({ frontend: "react" }));
+    expect(result.hasFile("src/index.ts")).toBe(false);
+    expect(result.hasFile("tests/index.test.ts")).toBe(false);
+    expect(result.hasFile("web/src/index.ts")).toBe(true);
+    expect(result.hasFile("web/tests/index.test.ts")).toBe(true);
   });
 });

@@ -156,6 +156,12 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     }
   }
 
+  // 1.5. Remove language sample files when frontend provides web/ workspace
+  if (answers.frontend !== "none") {
+    allFiles.delete("src/index.ts");
+    allFiles.delete("tests/index.test.ts");
+  }
+
   // 2. Merge shared files (JSON/YAML/TOML)
   const mergeContributions = new Map<string, unknown[]>();
   for (const preset of presets) {
@@ -335,7 +341,18 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     allFiles.set("scripts/setup.sh", expandSetupScript(setupTemplate, presets));
   }
 
-  // 6. Write files & return result
+  // 6. Generate pnpm-workspace.yaml for workspace packages
+  const workspacePackages: string[] = [];
+  if (answers.frontend !== "none") workspacePackages.push("web");
+  if (workspacePackages.length > 0) {
+    const yamlLines = ["packages:"];
+    for (const pkg of workspacePackages) {
+      yamlLines.push(`  - ${pkg}`);
+    }
+    allFiles.set("pnpm-workspace.yaml", `${yamlLines.join("\n")}\n`);
+  }
+
+  // 7. Write files & return result
   if (options.writer) {
     for (const [filePath, content] of allFiles) {
       options.writer.write(filePath, content);
