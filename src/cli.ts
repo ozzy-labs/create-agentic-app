@@ -152,8 +152,6 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
           options.push({ value: "python" as const, label: t("wizard.languages.python.label") });
         }
 
-        if (options.length === 0) return undefined;
-
         return p.multiselect({
           message: `${t("wizard.languages.message")} ${pc.dim(t("wizard.languages.hint"))}`,
           options,
