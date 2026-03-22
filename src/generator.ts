@@ -5,6 +5,7 @@ import { azurePreset } from "./presets/azure.js";
 import { basePreset } from "./presets/base.js";
 import { bicepPreset } from "./presets/bicep.js";
 import { cdkPreset } from "./presets/cdk.js";
+import { claudeCodePreset } from "./presets/claude-code.js";
 import { cloudformationPreset } from "./presets/cloudformation.js";
 import { expressPreset } from "./presets/express.js";
 import { fastapiPreset } from "./presets/fastapi.js";
@@ -40,6 +41,7 @@ const ALL_PRESETS: Record<string, Preset> = {
   cloudformation: cloudformationPreset,
   terraform: terraformPreset,
   bicep: bicepPreset,
+  "claude-code": claudeCodePreset,
 };
 
 /**
@@ -82,6 +84,7 @@ const PRESET_ORDER = [
   "cloudformation",
   "terraform",
   "bicep",
+  "claude-code",
 ];
 
 /** Resolve which presets to apply based on wizard answers, including dependency chains. */
@@ -111,6 +114,10 @@ export function resolvePresets(answers: WizardAnswers): string[] {
     if (iac === "cdk") {
       selected.add("typescript"); // CDK forces TypeScript
     }
+  }
+
+  for (const agent of answers.agents) {
+    selected.add(agent);
   }
 
   // Resolve `requires` chains
@@ -275,11 +282,16 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   }
 
   // 3.1. Distribute "agent-instructions" sections to instruction file templates.
-  // Currently only CLAUDE.md; future agent presets will register additional targets.
-  const INSTRUCTION_TARGETS = ["CLAUDE.md"];
+  // Each agent preset's top-level .md owned file is an instruction target.
+  const AGENT_INSTRUCTION_FILES: Record<string, string> = {
+    "claude-code": "CLAUDE.md",
+  };
+  const instructionTargets = presetNames
+    .filter((name) => name in AGENT_INSTRUCTION_FILES)
+    .map((name) => AGENT_INSTRUCTION_FILES[name]);
   const agentSections = markdownSections.get("agent-instructions");
   if (agentSections) {
-    for (const target of INSTRUCTION_TARGETS) {
+    for (const target of instructionTargets) {
       const existing = markdownSections.get(target) ?? [];
       existing.push(...agentSections);
       markdownSections.set(target, existing);

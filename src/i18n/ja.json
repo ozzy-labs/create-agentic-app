@@ -42,6 +42,11 @@
       "cloudformation": { "label": "CloudFormation", "hint": "AWS" },
       "terraform": { "label": "Terraform" },
       "bicep": { "label": "Bicep", "hint": "Azure" }
+    },
+    "agents": {
+      "message": "AI エージェントツール",
+      "hint": "エージェント固有のプロジェクト設定・ルール・MCP サーバーを追加",
+      "claude-code": { "label": "Claude Code", "hint": "CLAUDE.md, スキル, ルール" }
     }
   },
   "overwrite": {
