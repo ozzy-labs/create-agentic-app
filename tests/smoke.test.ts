@@ -1,39 +1,21 @@
 /**
- * Verification tests — generate representative patterns and validate output.
+ * Layer C: Smoke tests — representative patterns validating cross-cutting output.
  *
- * These tests go beyond unit/integration tests by verifying the actual merged
- * output of generated projects: JSON validity, preset isolation, and correct
- * composition of shared files (VSCode, devcontainer, package.json, etc.).
+ * Verifies JSON validity, preset isolation, shared file composition (VSCode,
+ * devcontainer, package.json), and other integration concerns across all
+ * major preset combinations.
  *
  * Run with: pnpm run verify
  */
 import { describe, expect, it } from "vitest";
 import { generate } from "../src/generator.js";
-import type { WizardAnswers } from "../src/types.js";
+import { makeAnswers, readValidJson } from "./helpers.js";
 
-function makeAnswers(overrides: Partial<WizardAnswers> = {}): WizardAnswers {
-  return {
-    projectName: "verify-app",
-    languages: [],
-    frontend: "none",
-    clouds: [],
-    iac: [],
-    ...overrides,
-  };
-}
-
-// Helper to parse and validate JSON files
-function readValidJson(result: ReturnType<typeof generate>, path: string): Record<string, unknown> {
-  const text = result.readText(path);
-  expect(() => JSON.parse(text), `${path} should be valid JSON`).not.toThrow();
-  return JSON.parse(text) as Record<string, unknown>;
-}
-
-// --- Shared file composition checks across all patterns ---
+// --- Shared file composition checks across representative patterns ---
 
 interface PatternDef {
   name: string;
-  answers: Partial<WizardAnswers>;
+  answers: Partial<Parameters<typeof makeAnswers>[0]>;
   vscodeSettings: {
     mustInclude: string[];
     mustExclude: string[];
@@ -487,7 +469,7 @@ const patterns: PatternDef[] = [
   },
 ];
 
-describe("verify: generated output", () => {
+describe("smoke: shared file composition", () => {
   for (const p of patterns) {
     describe(p.name, () => {
       const result = generate(makeAnswers(p.answers));
@@ -561,7 +543,7 @@ describe("verify: generated output", () => {
       it("package.json lint:all includes all lint scripts", () => {
         const pkg = readValidJson(result, "package.json");
         const scripts = pkg.scripts as Record<string, string>;
-        if (!scripts["lint:all"]) return; // base-only may not have lint:all
+        if (!scripts["lint:all"]) return;
         const lintAll = scripts["lint:all"];
         for (const key of Object.keys(scripts).sort()) {
           if (key.startsWith("lint:") && key !== "lint:all" && key !== "lint:fix") {
@@ -579,7 +561,6 @@ describe("verify: generated output", () => {
         const dcExtensions = (dc.customizations as Record<string, Record<string, string[]>>).vscode
           .extensions;
 
-        // Every VSCode recommended extension should also be in devcontainer
         for (const e of vscodeRecs) {
           expect(dcExtensions, `devcontainer should include VSCode extension "${e}"`).toContain(e);
         }
@@ -588,26 +569,65 @@ describe("verify: generated output", () => {
   }
 });
 
-// --- CI deduplication checks ---
+// --- Full config integration ---
 
-describe("verify: CI deduplication", () => {
-  it("cfn-lint appears only once when both CDK and CloudFormation are selected", () => {
-    const result = generate(
-      makeAnswers({
-        languages: ["typescript"],
-        clouds: ["aws"],
-        iac: ["cdk", "cloudformation"],
-      }),
-    );
-    const ci = result.readText(".github/workflows/ci.yaml");
-    const matches = ci.match(/Lint \(cfn-lint\)/g) ?? [];
-    expect(matches.length, "cfn-lint should appear exactly once in CI").toBe(1);
+describe("smoke: full config integration", () => {
+  const answers = makeAnswers({
+    languages: ["typescript", "python"],
+    frontend: "react",
+    clouds: ["aws"],
+    iac: ["cdk"],
+  });
+  const result = generate(answers);
+
+  it("includes all preset files", () => {
+    expect(result.hasFile("biome.json")).toBe(true);
+    expect(result.hasFile("pyproject.toml")).toBe(true);
+    expect(result.hasFile("web/vite.config.ts")).toBe(true);
+    expect(result.hasFile("web/index.html")).toBe(true);
+    expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
+    expect(result.hasFile("infra/bin/app.ts")).toBe(true);
+    expect(result.hasFile(".cfnlintrc.yaml")).toBe(true);
+    expect(result.hasFile(".github/workflows/cd-cdk.yaml")).toBe(true);
+  });
+
+  it("merges all tools into .mise.toml", () => {
+    const toml = result.readToml(".mise.toml") as Record<string, Record<string, string>>;
+    expect(toml.tools["npm:@biomejs/biome"]).toBe("2");
+    expect(toml.tools.python).toBe("3.12");
+    expect(toml.tools["npm:aws-cdk"]).toBe("2");
+  });
+
+  it("merges all MCP servers", () => {
+    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
+    expect(mcp.mcpServers.context7).toBeDefined();
+    expect(mcp.mcpServers.fetch).toBeDefined();
+    expect(mcp.mcpServers["aws-iac"]).toBeDefined();
+  });
+
+  it("lint:all includes all lint scripts", () => {
+    const pkg = result.readJson("package.json") as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string>;
+    expect(scripts["lint:all"]).toContain("pnpm run lint");
+    expect(scripts["lint:all"]).toContain("pnpm run typecheck");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:python");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:cfn");
+    expect(scripts["lint:all"]).toContain("pnpm run lint:secrets");
+  });
+
+  it("CLAUDE.md contains all preset sections", () => {
+    const claude = result.readText("CLAUDE.md");
+    expect(claude).toContain("TypeScript");
+    expect(claude).toContain("Python");
+    expect(claude).toContain("React");
+    expect(claude).toContain("CDK");
+    expect(claude).not.toContain("<!-- SECTION:");
   });
 });
 
 // --- CD workflow per-IaC checks ---
 
-describe("verify: CD workflows", () => {
+describe("smoke: CD workflows", () => {
   it("generates separate CD workflows for each IaC tool", () => {
     const result = generate(
       makeAnswers({
@@ -634,29 +654,9 @@ describe("verify: CD workflows", () => {
   });
 });
 
-// --- Terraform file generation checks ---
-
-describe("verify: Terraform preset", () => {
-  it("generates main.tf placeholder", () => {
-    const result = generate(
-      makeAnswers({ languages: ["typescript"], clouds: ["aws"], iac: ["terraform"] }),
-    );
-    expect(result.hasFile("main.tf")).toBe(true);
-  });
-
-  it("adds Terraform entries to .gitignore", () => {
-    const result = generate(
-      makeAnswers({ languages: ["typescript"], clouds: ["aws"], iac: ["terraform"] }),
-    );
-    const gitignore = result.readText(".gitignore");
-    expect(gitignore).toContain(".terraform/");
-    expect(gitignore).toContain("*.tfstate");
-  });
-});
-
 // --- .gitignore preset isolation ---
 
-describe("verify: .gitignore preset isolation", () => {
+describe("smoke: .gitignore preset isolation", () => {
   it("base-only does not include CDK or Python or Terraform entries", () => {
     const result = generate(makeAnswers());
     const gitignore = result.readText(".gitignore");
@@ -683,7 +683,7 @@ describe("verify: .gitignore preset isolation", () => {
 
 // --- CLAUDE.md MCP servers line ---
 
-describe("verify: CLAUDE.md MCP servers", () => {
+describe("smoke: CLAUDE.md MCP servers", () => {
   it("no empty entries when both AWS and Azure are selected", () => {
     const result = generate(
       makeAnswers({ languages: ["typescript"], clouds: ["aws", "azure"], iac: ["terraform"] }),
@@ -713,14 +713,13 @@ describe("verify: CLAUDE.md MCP servers", () => {
     const claude = result.readText("CLAUDE.md");
     const mcpLine = claude.split("\n").find((l) => l.includes("MCP servers"));
     expect(mcpLine).toBeDefined();
-    // Ensure "Fetch (web)" is followed by ", AWS IaC" (not "Fetch (web)AWS IaC")
     expect(mcpLine).toContain("Fetch (web), AWS IaC");
   });
 });
 
 // --- Project Structure infra/ deduplication ---
 
-describe("verify: infra/ structure deduplication", () => {
+describe("smoke: infra/ structure deduplication", () => {
   it("CLAUDE.md shows single infra/ line for multiple IaC presets", () => {
     const result = generate(
       makeAnswers({
@@ -758,7 +757,7 @@ describe("verify: infra/ structure deduplication", () => {
 
 // --- pnpm workspace structure ---
 
-describe("verify: pnpm workspace", () => {
+describe("smoke: pnpm workspace", () => {
   it("generates pnpm-workspace.yaml for React", () => {
     const result = generate(makeAnswers({ frontend: "react" }));
     expect(result.hasFile("pnpm-workspace.yaml")).toBe(true);
