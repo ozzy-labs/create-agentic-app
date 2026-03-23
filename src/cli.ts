@@ -158,6 +158,18 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
           required: false,
         });
       },
+      agents: () =>
+        p.multiselect({
+          message: `${t("wizard.agents.message")} ${pc.dim(t("wizard.agents.hint"))}`,
+          options: [
+            {
+              value: "claude-code" as const,
+              label: t("wizard.agents.claude-code.label"),
+              hint: t("wizard.agents.claude-code.hint"),
+            },
+          ],
+          required: false,
+        }),
     },
     {
       onCancel: () => {
@@ -174,5 +186,6 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
     clouds: (answers.clouds ?? []) as WizardAnswers["clouds"],
     iac: (answers.iac ?? []) as WizardAnswers["iac"],
     languages: (answers.languages ?? []) as WizardAnswers["languages"],
+    agents: (answers.agents ?? []) as WizardAnswers["agents"],
   };
 }

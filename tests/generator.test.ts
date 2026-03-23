@@ -11,7 +11,7 @@ describe("resolvePresets", () => {
 
   it("includes selected languages", () => {
     const result = resolvePresets(makeAnswers({ languages: ["typescript", "python"] }));
-    expect(result).toEqual(["base", "typescript", "python"]);
+    expect(result).toEqual(["base", "typescript", "python", "claude-code"]);
   });
 
   it("forces typescript when react is selected", () => {
@@ -46,7 +46,7 @@ describe("resolvePresets", () => {
         iac: ["cdk"],
       }),
     );
-    expect(result).toEqual(["base", "typescript", "python", "react", "aws", "cdk"]);
+    expect(result).toEqual(["base", "typescript", "python", "react", "aws", "cdk", "claude-code"]);
   });
 
   it("maintains canonical order with gcp", () => {
@@ -57,7 +57,15 @@ describe("resolvePresets", () => {
         iac: ["terraform"],
       }),
     );
-    expect(result).toEqual(["base", "typescript", "aws", "azure", "gcp", "terraform"]);
+    expect(result).toEqual([
+      "base",
+      "typescript",
+      "aws",
+      "azure",
+      "gcp",
+      "terraform",
+      "claude-code",
+    ]);
   });
 
   it("deduplicates typescript when forced by multiple selections", () => {
@@ -70,17 +78,17 @@ describe("resolvePresets", () => {
 
   it("includes fastapi and forces python", () => {
     const result = resolvePresets(makeAnswers({ backend: "fastapi" }));
-    expect(result).toEqual(["base", "python", "fastapi"]);
+    expect(result).toEqual(["base", "python", "fastapi", "claude-code"]);
   });
 
   it("includes express and forces typescript", () => {
     const result = resolvePresets(makeAnswers({ backend: "express" }));
-    expect(result).toEqual(["base", "typescript", "express"]);
+    expect(result).toEqual(["base", "typescript", "express", "claude-code"]);
   });
 
   it("includes both frontend and backend presets", () => {
     const result = resolvePresets(makeAnswers({ frontend: "react", backend: "fastapi" }));
-    expect(result).toEqual(["base", "typescript", "python", "react", "fastapi"]);
+    expect(result).toEqual(["base", "typescript", "python", "react", "fastapi", "claude-code"]);
   });
 
   it("deduplicates typescript when express and react are both selected", () => {
@@ -94,17 +102,17 @@ describe("resolvePresets", () => {
 
   it("includes both typescript and python when react + fastapi", () => {
     const result = resolvePresets(makeAnswers({ frontend: "react", backend: "fastapi" }));
-    expect(result).toEqual(["base", "typescript", "python", "react", "fastapi"]);
+    expect(result).toEqual(["base", "typescript", "python", "react", "fastapi", "claude-code"]);
   });
 
   it("includes both typescript and python when nextjs + fastapi", () => {
     const result = resolvePresets(makeAnswers({ frontend: "nextjs", backend: "fastapi" }));
-    expect(result).toEqual(["base", "typescript", "python", "nextjs", "fastapi"]);
+    expect(result).toEqual(["base", "typescript", "python", "nextjs", "fastapi", "claude-code"]);
   });
 
   it("does not force languages for cloud-only selections", () => {
     const result = resolvePresets(makeAnswers({ clouds: ["aws", "azure", "gcp"] }));
-    expect(result).toEqual(["base", "aws", "azure", "gcp"]);
+    expect(result).toEqual(["base", "aws", "azure", "gcp", "claude-code"]);
   });
 });
 

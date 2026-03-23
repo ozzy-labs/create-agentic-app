@@ -47,12 +47,6 @@ describe("generate (base only)", () => {
     expect(commands.markdownlint).toBeDefined();
   });
 
-  it("generates merged .mcp.json with base servers", () => {
-    const mcp = result.readJson(".mcp.json") as Record<string, Record<string, unknown>>;
-    expect(mcp.mcpServers.context7).toBeDefined();
-    expect(mcp.mcpServers.fetch).toBeDefined();
-  });
-
   it("generates CI workflow", () => {
     expect(result.hasFile(".github/workflows/ci.yaml")).toBe(true);
     const ci = result.readYaml(".github/workflows/ci.yaml") as Record<string, unknown>;
@@ -138,6 +132,14 @@ describe("generate (base only)", () => {
     expect(mounts.some((m: string) => m.includes(".aws"))).toBe(false);
     expect(mounts.some((m: string) => m.includes("uv-cache"))).toBe(false);
     expect(mounts.some((m: string) => m.includes("pnpm-store"))).toBe(true);
+    expect(mounts.some((m: string) => m.includes(".claude"))).toBe(true);
+  });
+
+  it("does not generate .mcp.json or CLAUDE.md without agent selection", () => {
+    const noAgent = generate(makeAnswers({ agents: [] }));
+    expect(noAgent.hasFile(".mcp.json")).toBe(false);
+    expect(noAgent.hasFile("CLAUDE.md")).toBe(false);
+    expect(noAgent.hasFile(".claude/settings.json")).toBe(false);
   });
 
   it("base only has no TypeScript/Python specific files", () => {
