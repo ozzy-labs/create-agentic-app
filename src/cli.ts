@@ -177,6 +177,11 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
               label: t("wizard.agents.gemini.label"),
               hint: t("wizard.agents.gemini.hint"),
             },
+            {
+              value: "amazon-q" as const,
+              label: t("wizard.agents.amazon-q.label"),
+              hint: t("wizard.agents.amazon-q.hint"),
+            },
           ],
           required: false,
         }),

@@ -1,5 +1,6 @@
 import { buildCiWorkflow } from "./ci.js";
 import { expandMarkdown, formatMcpJson, formatMcpToml, mergeFile } from "./merge.js";
+import { amazonQPreset } from "./presets/amazon-q.js";
 import { awsPreset } from "./presets/aws.js";
 import { azurePreset } from "./presets/azure.js";
 import { basePreset } from "./presets/base.js";
@@ -46,6 +47,7 @@ const ALL_PRESETS: Record<string, Preset> = {
   "claude-code": claudeCodePreset,
   codex: codexPreset,
   gemini: geminiPreset,
+  "amazon-q": amazonQPreset,
 };
 
 /**
@@ -91,6 +93,7 @@ const PRESET_ORDER = [
   "claude-code",
   "codex",
   "gemini",
+  "amazon-q",
 ];
 
 /** Resolve which presets to apply based on wizard answers, including dependency chains. */
@@ -277,6 +280,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
       "claude-code": { path: ".mcp.json", format: "json" },
       codex: { path: ".codex/config.toml", format: "toml" },
       gemini: { path: ".gemini/settings.json", format: "json" },
+      "amazon-q": { path: ".amazonq/mcp.json", format: "json" },
     };
     for (const name of presetNames) {
       const config = AGENT_MCP_FILES[name];
@@ -306,6 +310,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     "claude-code": "CLAUDE.md",
     codex: "AGENTS.md",
     gemini: "GEMINI.md",
+    "amazon-q": ".amazonq/rules/project.md",
   };
   const instructionTargets = presetNames
     .filter((name) => name in AGENT_INSTRUCTION_FILES)

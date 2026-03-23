@@ -48,7 +48,8 @@
       "hint": "Add agent-specific project config, rules, and MCP servers",
       "claude-code": { "label": "Claude Code", "hint": "CLAUDE.md, skills, rules" },
       "codex": { "label": "Codex CLI", "hint": "AGENTS.md, MCP" },
-      "gemini": { "label": "Gemini CLI", "hint": "GEMINI.md, MCP" }
+      "gemini": { "label": "Gemini CLI", "hint": "GEMINI.md, MCP" },
+      "amazon-q": { "label": "Amazon Q Developer", "hint": "project rules, MCP" }
     }
   },
   "overwrite": {
