@@ -58,26 +58,38 @@ const ALL_PRESETS: Record<string, Preset> = {
 
 /**
  * Collapse multiple IaC infra placeholder contributions into a single entry.
+ * Returns a new array — does not mutate the input.
  * e.g. ["CDK (bin/, lib/, test/)", "CloudFormation"] → "infra/ -> Infrastructure (CDK (bin/, lib/, test/), CloudFormation)"
  */
 function collapseInfraPlaceholders(
   sections: MarkdownSection[],
   placeholder: string,
   formatter: (names: string) => string,
-): void {
+): MarkdownSection[] {
   const infraSections = sections.filter((s) => s.placeholder === placeholder);
-  if (infraSections.length === 0) return;
+  if (infraSections.length === 0) return sections;
 
-  // Remove all matching entries
   const remaining = sections.filter((s) => s.placeholder !== placeholder);
-
-  // Combine into single entry
   const names = [...new Set(infraSections.map((s) => s.content))].join(", ");
   remaining.push({ placeholder, content: formatter(names) });
+  return remaining;
+}
 
-  // Replace sections array contents
-  sections.length = 0;
-  sections.push(...remaining);
+/**
+ * Collapse CD_SECTION entries: wrap table rows with a section header.
+ * Returns a new array — does not mutate the input.
+ */
+function collapseCdSection(sections: MarkdownSection[]): MarkdownSection[] {
+  const cdSections = sections.filter((s) => s.placeholder === "<!-- SECTION:CD_SECTION -->");
+  if (cdSections.length === 0) return sections;
+
+  const remaining = sections.filter((s) => s.placeholder !== "<!-- SECTION:CD_SECTION -->");
+  const rows = [...new Set(cdSections.map((s) => s.content))].join("\n");
+  remaining.push({
+    placeholder: "<!-- SECTION:CD_SECTION -->",
+    content: `## デプロイ設定（CD）\n\nCD ワークフローを利用するには、GitHub リポジトリの **Settings → Secrets and variables → Actions → Variables** で以下を設定してください:\n\n| 変数名 | 説明 |\n|--------|------|\n${rows}`,
+  });
+  return remaining;
 }
 
 /** Canonical application order for presets. */
@@ -173,6 +185,222 @@ function replaceVariables(content: string, vars: Record<string, string>): string
   return result;
 }
 
+// --- Agent config mappings ---
+
+const AGENT_MCP_FILES: Record<string, { path: string; format: "json" | "toml" }> = {
+  "claude-code": { path: ".mcp.json", format: "json" },
+  codex: { path: ".codex/config.toml", format: "toml" },
+  gemini: { path: ".gemini/settings.json", format: "json" },
+  "amazon-q": { path: ".amazonq/mcp.json", format: "json" },
+  copilot: { path: ".copilot/mcp-config.json", format: "json" },
+  cursor: { path: ".cursor/mcp.json", format: "json" },
+};
+
+const AGENT_INSTRUCTION_FILES: Record<string, string> = {
+  "claude-code": "CLAUDE.md",
+  codex: "AGENTS.md",
+  gemini: "GEMINI.md",
+  "amazon-q": ".amazonq/rules/project.md",
+  copilot: ".github/copilot-instructions.md",
+  cline: ".clinerules/project.md",
+  cursor: ".cursor/rules/project.mdc",
+};
+
+// --- Helper functions for generate() ---
+
+/** Post-process package.json: remove unused conditional deps, build lint:all and test:all. */
+function postProcessPackageJson(pkgContent: string, presets: Preset[]): string {
+  let pkg: Record<string, Record<string, string>>;
+  try {
+    pkg = JSON.parse(pkgContent) as Record<string, Record<string, string>>;
+  } catch (e) {
+    throw new Error(
+      `Failed to parse merged package.json: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+  const scripts = pkg.scripts ?? {};
+
+  // Remove devDependencies not referenced by any script (e.g. tsdown when React overrides build)
+  const conditionalDeps = presets.flatMap((p) => p.conditionalDevDeps ?? []);
+  const devDeps = (pkg.devDependencies ?? {}) as Record<string, string>;
+  const scriptValues = Object.values(scripts).join(" ");
+  for (const dep of conditionalDeps) {
+    if (dep in devDeps && !scriptValues.includes(dep)) {
+      delete devDeps[dep];
+    }
+  }
+
+  // Build lint:all dynamically
+  const lintParts: string[] = [];
+  if (scripts.lint) lintParts.push("pnpm run lint");
+  if (scripts.typecheck) lintParts.push("pnpm run typecheck");
+  for (const key of Object.keys(scripts).sort()) {
+    if (key.startsWith("typecheck:")) {
+      lintParts.push(`pnpm run ${key}`);
+    }
+  }
+  for (const key of Object.keys(scripts).sort()) {
+    if (
+      key.startsWith("lint:") &&
+      key !== "lint:all" &&
+      key !== "lint:fix" &&
+      key !== "lint:secrets"
+    ) {
+      lintParts.push(`pnpm run ${key}`);
+    }
+  }
+  if (scripts["lint:secrets"]) lintParts.push("pnpm run lint:secrets");
+  if (lintParts.length > 0) {
+    scripts["lint:all"] = lintParts.join(" && ");
+  }
+
+  // Build test:all dynamically
+  const testParts: string[] = [];
+  if (scripts.test) testParts.push("pnpm test");
+  for (const key of Object.keys(scripts).sort()) {
+    if (key.startsWith("test:") && key !== "test:all" && key !== "test:watch") {
+      testParts.push(`pnpm run ${key}`);
+    }
+  }
+  if (testParts.length > 1) {
+    scripts["test:all"] = testParts.join(" && ");
+  }
+
+  pkg.scripts = scripts;
+  return `${JSON.stringify(pkg, null, 2)}\n`;
+}
+
+/** Collect MCP servers from all presets and write config files for active agents. */
+function distributeMcpServers(
+  allFiles: Map<string, string>,
+  presets: Preset[],
+  presetNames: string[],
+): void {
+  const allMcpServers: Record<string, McpServerConfig> = {};
+  for (const preset of presets) {
+    if (preset.mcpServers) {
+      Object.assign(allMcpServers, preset.mcpServers);
+    }
+  }
+  if (Object.keys(allMcpServers).length === 0) return;
+
+  for (const name of presetNames) {
+    const config = AGENT_MCP_FILES[name];
+    if (config) {
+      allFiles.set(
+        config.path,
+        config.format === "toml" ? formatMcpToml(allMcpServers) : formatMcpJson(allMcpServers),
+      );
+    }
+  }
+}
+
+/** Collect, distribute, collapse, and expand all Markdown template sections. */
+function expandMarkdownTemplates(
+  allFiles: Map<string, string>,
+  presets: Preset[],
+  presetNames: string[],
+  vars: Record<string, string>,
+): void {
+  // Collect sections from all presets
+  const markdownSections = new Map<string, MarkdownSection[]>();
+  for (const preset of presets) {
+    if (!preset.markdown) continue;
+    for (const [key, sections] of Object.entries(preset.markdown)) {
+      const existing = markdownSections.get(key) ?? [];
+      existing.push(...sections);
+      markdownSections.set(key, existing);
+    }
+  }
+
+  // Distribute "agent-instructions" sections to each agent's instruction file
+  const instructionTargets = presetNames
+    .filter((name) => name in AGENT_INSTRUCTION_FILES)
+    .map((name) => AGENT_INSTRUCTION_FILES[name]);
+  const agentSections = markdownSections.get("agent-instructions");
+  if (agentSections) {
+    for (const target of instructionTargets) {
+      const existing = markdownSections.get(target) ?? [];
+      existing.push(...agentSections);
+      markdownSections.set(target, existing);
+    }
+    markdownSections.delete("agent-instructions");
+  }
+
+  // Pre-process: collapse repeated placeholders into single entries
+  for (const [key, sections] of markdownSections) {
+    let collapsed = collapseInfraPlaceholders(
+      sections,
+      "<!-- SECTION:INFRA_STRUCTURE -->",
+      (names) => `infra/        -> Infrastructure (${names})`,
+    );
+    collapsed = collapseInfraPlaceholders(
+      collapsed,
+      "<!-- SECTION:INFRA_DIR_STRUCTURE -->",
+      (names) => `├── infra/               # インフラストラクチャ (${names})`,
+    );
+    collapsed = collapseCdSection(collapsed);
+    markdownSections.set(key, collapsed);
+  }
+
+  // Apply section expansions to templates
+  for (const [filePath, sections] of markdownSections) {
+    const template = allFiles.get(filePath);
+    if (template) {
+      allFiles.set(filePath, replaceVariables(expandMarkdown(template, sections), vars));
+    }
+  }
+
+  // Remove any remaining unused placeholders and empty list items
+  for (const [filePath, content] of allFiles) {
+    if (
+      (filePath.endsWith(".md") || filePath.endsWith(".mdc")) &&
+      content.includes("<!-- SECTION:")
+    ) {
+      const cleaned = content
+        .replaceAll(/<!-- SECTION:\w+ -->\n?/g, "")
+        .replaceAll(/^(?:\d+\.|-)\s+\*\*[^*]+\*\*:\s*\n(?=\n|#|$)/gm, "");
+      allFiles.set(filePath, cleaned);
+    }
+  }
+}
+
+/** Generate .tflint.hcl based on selected cloud providers. */
+function generateTflintConfig(
+  allFiles: Map<string, string>,
+  clouds: WizardAnswers["clouds"],
+): void {
+  const plugins: string[] = [];
+  if (clouds.includes("aws")) {
+    plugins.push(`plugin "aws" {
+  enabled = true
+  version = "0.38.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-aws"
+}`);
+  }
+  if (clouds.includes("azure")) {
+    plugins.push(`plugin "azurerm" {
+  enabled = true
+  version = "0.27.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
+}`);
+  }
+  if (clouds.includes("gcp")) {
+    plugins.push(`plugin "google" {
+  enabled = true
+  version = "0.38.0"
+  source  = "github.com/terraform-linters/tflint-ruleset-google"
+}`);
+  }
+  if (plugins.length > 0) {
+    const header =
+      "# NOTE: Plugin versions are not managed by Renovate.\n# Update version numbers manually, then run `tflint --init` to download them.\n";
+    allFiles.set(".tflint.hcl", `${header}\n${plugins.join("\n\n")}\n`);
+  }
+}
+
+// --- Main entry point ---
+
 export interface GenerateOptions {
   writer?: FileWriter;
 }
@@ -186,9 +414,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     return preset;
   });
 
-  const vars: Record<string, string> = {
-    projectName: answers.projectName,
-  };
+  const vars: Record<string, string> = { projectName: answers.projectName };
 
   // 1. Collect all owned files
   const allFiles = new Map<string, string>();
@@ -197,8 +423,6 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
       allFiles.set(filePath, replaceVariables(content, vars));
     }
   }
-
-  // 1.5. Remove language sample files when frontend provides web/ workspace
   if (answers.frontend !== "none") {
     allFiles.delete("src/index.ts");
     allFiles.delete("tests/index.test.ts");
@@ -213,242 +437,52 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
       mergeContributions.set(filePath, patches);
     }
   }
-
   for (const [filePath, patches] of mergeContributions) {
     const defaultBase = filePath.endsWith(".toml") ? "" : "{}";
     const base = allFiles.get(filePath) ?? defaultBase;
-    const merged = mergeFile(filePath, base, patches);
-    allFiles.set(filePath, replaceVariables(merged, vars));
+    allFiles.set(filePath, replaceVariables(mergeFile(filePath, base, patches), vars));
   }
 
-  // 2.5. Post-merge cleanup & lint:all generation for package.json
+  // 3. Post-process package.json (conditional deps, lint:all, test:all)
   const pkgContent = allFiles.get("package.json");
   if (pkgContent) {
-    let pkg: Record<string, Record<string, string>>;
-    try {
-      pkg = JSON.parse(pkgContent) as Record<string, Record<string, string>>;
-    } catch (e) {
-      throw new Error(
-        `Failed to parse merged package.json: ${e instanceof Error ? e.message : String(e)}`,
-      );
-    }
-    const scripts = pkg.scripts ?? {};
-
-    // Remove devDependencies not referenced by any script (e.g. tsdown when React overrides build)
-    const conditionalDeps = presets.flatMap((p) => p.conditionalDevDeps ?? []);
-    const devDeps = (pkg.devDependencies ?? {}) as Record<string, string>;
-    const scriptValues = Object.values(scripts).join(" ");
-    for (const dep of conditionalDeps) {
-      if (dep in devDeps && !scriptValues.includes(dep)) {
-        delete devDeps[dep];
-      }
-    }
-
-    // Build lint:all dynamically
-    const lintParts: string[] = [];
-    // Biome lint (if present)
-    if (scripts.lint) lintParts.push("pnpm run lint");
-    // TypeScript typecheck (if present)
-    if (scripts.typecheck) lintParts.push("pnpm run typecheck");
-    // Additional typecheck:* scripts (e.g. typecheck:infra for CDK)
-    for (const key of Object.keys(scripts).sort()) {
-      if (key.startsWith("typecheck:")) {
-        lintParts.push(`pnpm run ${key}`);
-      }
-    }
-    // All lint:* scripts in sorted order (except lint:all, lint:fix, lint:secrets)
-    for (const key of Object.keys(scripts).sort()) {
-      if (
-        key.startsWith("lint:") &&
-        key !== "lint:all" &&
-        key !== "lint:fix" &&
-        key !== "lint:secrets"
-      ) {
-        lintParts.push(`pnpm run ${key}`);
-      }
-    }
-    // lint:secrets last (gitleaks can be slow)
-    if (scripts["lint:secrets"]) lintParts.push("pnpm run lint:secrets");
-    if (lintParts.length > 0) {
-      scripts["lint:all"] = lintParts.join(" && ");
-    }
-
-    // Build test:all dynamically
-    const testParts: string[] = [];
-    if (scripts.test) testParts.push("pnpm test");
-    for (const key of Object.keys(scripts).sort()) {
-      if (key.startsWith("test:") && key !== "test:all" && key !== "test:watch") {
-        testParts.push(`pnpm run ${key}`);
-      }
-    }
-    if (testParts.length > 1) {
-      scripts["test:all"] = testParts.join(" && ");
-    }
-
-    pkg.scripts = scripts;
-    allFiles.set("package.json", `${JSON.stringify(pkg, null, 2)}\n`);
+    allFiles.set("package.json", postProcessPackageJson(pkgContent, presets));
   }
 
-  // 2.7. Collect MCP servers from all presets and distribute to agent config files
-  const allMcpServers: Record<string, McpServerConfig> = {};
-  for (const preset of presets) {
-    if (preset.mcpServers) {
-      Object.assign(allMcpServers, preset.mcpServers);
-    }
-  }
-  if (Object.keys(allMcpServers).length > 0) {
-    const AGENT_MCP_FILES: Record<string, { path: string; format: "json" | "toml" }> = {
-      "claude-code": { path: ".mcp.json", format: "json" },
-      codex: { path: ".codex/config.toml", format: "toml" },
-      gemini: { path: ".gemini/settings.json", format: "json" },
-      "amazon-q": { path: ".amazonq/mcp.json", format: "json" },
-      copilot: { path: ".copilot/mcp-config.json", format: "json" },
-      cursor: { path: ".cursor/mcp.json", format: "json" },
-    };
-    for (const name of presetNames) {
-      const config = AGENT_MCP_FILES[name];
-      if (config) {
-        allFiles.set(
-          config.path,
-          config.format === "toml" ? formatMcpToml(allMcpServers) : formatMcpJson(allMcpServers),
-        );
-      }
-    }
-  }
+  // 4. Distribute MCP servers to agent config files
+  distributeMcpServers(allFiles, presets, presetNames);
 
-  // 3. Expand Markdown templates
-  const markdownSections = new Map<string, MarkdownSection[]>();
-  for (const preset of presets) {
-    if (!preset.markdown) continue;
-    for (const [key, sections] of Object.entries(preset.markdown)) {
-      const existing = markdownSections.get(key) ?? [];
-      existing.push(...sections);
-      markdownSections.set(key, existing);
-    }
-  }
+  // 5. Expand Markdown templates
+  expandMarkdownTemplates(allFiles, presets, presetNames, vars);
 
-  // 3.1. Distribute "agent-instructions" sections to instruction file templates.
-  // Each agent preset's top-level .md owned file is an instruction target.
-  const AGENT_INSTRUCTION_FILES: Record<string, string> = {
-    "claude-code": "CLAUDE.md",
-    codex: "AGENTS.md",
-    gemini: "GEMINI.md",
-    "amazon-q": ".amazonq/rules/project.md",
-    copilot: ".github/copilot-instructions.md",
-    cline: ".clinerules/project.md",
-    cursor: ".cursor/rules/project.mdc",
-  };
-  const instructionTargets = presetNames
-    .filter((name) => name in AGENT_INSTRUCTION_FILES)
-    .map((name) => AGENT_INSTRUCTION_FILES[name]);
-  const agentSections = markdownSections.get("agent-instructions");
-  if (agentSections) {
-    for (const target of instructionTargets) {
-      const existing = markdownSections.get(target) ?? [];
-      existing.push(...agentSections);
-      markdownSections.set(target, existing);
-    }
-    markdownSections.delete("agent-instructions");
-  }
-
-  // Pre-process: collapse INFRA_STRUCTURE / INFRA_DIR_STRUCTURE into single lines
-  for (const [, sections] of markdownSections) {
-    collapseInfraPlaceholders(sections, "<!-- SECTION:INFRA_STRUCTURE -->", (names) => {
-      return `infra/        -> Infrastructure (${names})`;
-    });
-    collapseInfraPlaceholders(sections, "<!-- SECTION:INFRA_DIR_STRUCTURE -->", (names) => {
-      return `├── infra/               # インフラストラクチャ (${names})`;
-    });
-
-    // Collapse CD_SECTION: wrap table rows with section header
-    const cdSections = sections.filter((s) => s.placeholder === "<!-- SECTION:CD_SECTION -->");
-    if (cdSections.length > 0) {
-      const remaining = sections.filter((s) => s.placeholder !== "<!-- SECTION:CD_SECTION -->");
-      const rows = [...new Set(cdSections.map((s) => s.content))].join("\n");
-      remaining.push({
-        placeholder: "<!-- SECTION:CD_SECTION -->",
-        content: `## デプロイ設定（CD）\n\nCD ワークフローを利用するには、GitHub リポジトリの **Settings → Secrets and variables → Actions → Variables** で以下を設定してください:\n\n| 変数名 | 説明 |\n|--------|------|\n${rows}`,
-      });
-      sections.length = 0;
-      sections.push(...remaining);
-    }
-  }
-
-  for (const [filePath, sections] of markdownSections) {
-    const template = allFiles.get(filePath);
-    if (template) {
-      const expanded = replaceVariables(expandMarkdown(template, sections), vars);
-      allFiles.set(filePath, expanded);
-    }
-  }
-
-  // Remove any remaining unused placeholders from all Markdown files
-  // and clean up list items that became content-empty after removal
-  for (const [filePath, content] of allFiles) {
-    if (
-      (filePath.endsWith(".md") || filePath.endsWith(".mdc")) &&
-      content.includes("<!-- SECTION:")
-    ) {
-      const cleaned = content
-        .replaceAll(/<!-- SECTION:\w+ -->\n?/g, "")
-        .replaceAll(/^(?:\d+\.|-)\s+\*\*[^*]+\*\*:\s*\n(?=\n|#|$)/gm, "");
-      allFiles.set(filePath, cleaned);
-    }
-  }
-
-  // 3.5. Generate .tflint.hcl based on cloud providers (if terraform is selected)
+  // 6. Generate .tflint.hcl (if terraform is selected)
   if (presetNames.includes("terraform")) {
-    const plugins: string[] = [];
-    if (answers.clouds.includes("aws")) {
-      plugins.push(`plugin "aws" {
-  enabled = true
-  version = "0.38.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-aws"
-}`);
-    }
-    if (answers.clouds.includes("azure")) {
-      plugins.push(`plugin "azurerm" {
-  enabled = true
-  version = "0.27.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-azurerm"
-}`);
-    }
-    if (answers.clouds.includes("gcp")) {
-      plugins.push(`plugin "google" {
-  enabled = true
-  version = "0.38.0"
-  source  = "github.com/terraform-linters/tflint-ruleset-google"
-}`);
-    }
-    if (plugins.length > 0) {
-      const header =
-        "# NOTE: Plugin versions are not managed by Renovate.\n# Update version numbers manually, then run `tflint --init` to download them.\n";
-      allFiles.set(".tflint.hcl", `${header}\n${plugins.join("\n\n")}\n`);
-    }
+    generateTflintConfig(allFiles, answers.clouds);
   }
 
-  // 4. Build CI workflow
+  // 7. Build CI workflow
   const ciContributions = presets
     .map((p) => p.ciSteps)
     .filter((s): s is NonNullable<typeof s> => s != null);
   if (ciContributions.length > 0) {
     const hasTest = presets.some((p) => p.ciSteps?.testSteps?.length);
     const hasBuild = presets.some((p) => p.ciSteps?.buildSteps?.length);
-    const ciYaml = buildCiWorkflow({ contributions: ciContributions, hasTest, hasBuild });
-    allFiles.set(".github/workflows/ci.yaml", ciYaml);
+    allFiles.set(
+      ".github/workflows/ci.yaml",
+      buildCiWorkflow({ contributions: ciContributions, hasTest, hasBuild }),
+    );
   }
 
-  // 5. Expand setup.sh template with preset-specific extra commands
+  // 8. Expand setup.sh template
   const setupTemplate = allFiles.get("scripts/setup.sh");
   if (setupTemplate) {
     allFiles.set("scripts/setup.sh", expandSetupScript(setupTemplate, presets));
   }
 
-  // 6. Generate pnpm-workspace.yaml for workspace packages
+  // 9. Generate pnpm-workspace.yaml
   const workspacePackages: string[] = [];
   if (answers.frontend !== "none") workspacePackages.push("web");
   if (answers.backend === "express") workspacePackages.push("api");
-  // FastAPI uses Python/uv, not pnpm workspace
   if (workspacePackages.length > 0) {
     const yamlLines = ["packages:"];
     for (const pkg of workspacePackages) {
@@ -457,7 +491,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     allFiles.set("pnpm-workspace.yaml", `${yamlLines.join("\n")}\n`);
   }
 
-  // 7. Write files & return result
+  // 10. Write files & return result
   if (options.writer) {
     for (const [filePath, content] of allFiles) {
       options.writer.write(filePath, content);
