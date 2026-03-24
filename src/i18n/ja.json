@@ -12,7 +12,8 @@
       "message": "言語ツールチェイン",
       "hint": "選択ごとにリンター・フォーマッター・テスト環境を追加",
       "typescript": { "label": "TypeScript" },
-      "python": { "label": "Python" }
+      "python": { "label": "Python" },
+      "autoSelected": "{{lang}} は自動選択されました（{{sources}} に必要）"
     },
     "frontend": {
       "message": "フロントエンドアプリ",

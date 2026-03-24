@@ -12,7 +12,8 @@
       "message": "Language toolchains",
       "hint": "Each selection adds linters, formatters, and test setup",
       "typescript": { "label": "TypeScript" },
-      "python": { "label": "Python" }
+      "python": { "label": "Python" },
+      "autoSelected": "{{lang}} was auto-selected (required by {{sources}})"
     },
     "frontend": {
       "message": "Frontend app",
