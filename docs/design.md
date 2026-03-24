@@ -710,10 +710,14 @@ npm create agentic-dev [my-app]
    - Requires `NPM_TOKEN` secret
    - Requires `id-token: write` permission (provenance)
 
+**release-please.yaml** — on push to main:
+
+1. Conventional Commits を解析してバージョンバンプと CHANGELOG を自動生成
+2. Release PR を作成・更新
+3. Release PR マージ時に GitHub Release を作成 → release.yaml が npm publish を実行
+
 ### Release process
 
-1. Update `version` in package.json and commit
-2. Create GitHub Release (tag: `v0.1.0`, etc.)
-3. release.yaml auto-publishes to npm
-
-Future: automate with changesets or release-please when needed.
+1. Conventional Commits で main にマージ
+2. release-please が Release PR を自動作成（CHANGELOG + version bump）
+3. Release PR をマージ → GitHub Release 作成 → release.yaml が npm publish
