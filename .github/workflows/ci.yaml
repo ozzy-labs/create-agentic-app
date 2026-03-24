@@ -58,8 +58,8 @@ jobs:
       - name: Security (Gitleaks)
         run: gitleaks detect --no-banner
 
-      - name: Test
-        run: pnpm test
+      - name: Test with coverage
+        run: pnpm vitest run --coverage
 
       - name: Build
         run: pnpm build

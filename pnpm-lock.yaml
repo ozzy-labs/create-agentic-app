@@ -37,7 +37,7 @@ importers:
         specifier: ^22.0.0
         version: 22.19.15
       '@vitest/coverage-v8':
-        specifier: 4.1.1
+        specifier: ^4.1.1
         version: 4.1.1(vitest@4.1.1(@types/node@22.19.15)(vite@8.0.1(@types/node@22.19.15)(jiti@2.6.1)(yaml@2.8.2)))
       tsdown:
         specifier: ^0.12.0
