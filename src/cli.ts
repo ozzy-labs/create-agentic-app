@@ -41,20 +41,26 @@ function buildIacOptions(clouds: Array<"aws" | "azure" | "gcp">): Array<{
   return options;
 }
 
-/** Determine which languages are already forced by frontend/backend selections. */
+/** Determine which languages are already forced by frontend/backend/IaC selections, with reasons. */
 function resolvedLanguages(
   frontend: WizardAnswers["frontend"],
   backend: WizardAnswers["backend"],
   iac: WizardAnswers["iac"],
-): Set<"typescript" | "python"> {
-  const resolved = new Set<"typescript" | "python">();
+): Map<"typescript" | "python", string[]> {
+  const resolved = new Map<"typescript" | "python", string[]>();
+  const add = (lang: "typescript" | "python", source: string) => {
+    const sources = resolved.get(lang) ?? [];
+    sources.push(source);
+    resolved.set(lang, sources);
+  };
   // Frontend frameworks force TypeScript
-  if (frontend === "react" || frontend === "nextjs") resolved.add("typescript");
+  if (frontend === "react") add("typescript", t("wizard.frontend.react.label"));
+  if (frontend === "nextjs") add("typescript", t("wizard.frontend.nextjs.label"));
   // Backend frameworks force their language
-  if (backend === "fastapi") resolved.add("python");
-  if (backend === "express") resolved.add("typescript");
+  if (backend === "fastapi") add("python", t("wizard.backend.fastapi.label"));
+  if (backend === "express") add("typescript", t("wizard.backend.express.label"));
   // CDK forces TypeScript
-  if (iac.includes("cdk")) resolved.add("typescript");
+  if (iac.includes("cdk")) add("typescript", t("wizard.iac.cdk.label"));
   return resolved;
 }
 
@@ -137,6 +143,16 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
         const backend = (results.backend ?? "none") as WizardAnswers["backend"];
         const iac = (results.iac ?? []) as WizardAnswers["iac"];
         const resolved = resolvedLanguages(frontend, backend, iac);
+
+        // Show hints for auto-selected languages
+        for (const [lang, sources] of resolved) {
+          p.log.info(
+            t("wizard.languages.autoSelected", {
+              lang: t(`wizard.languages.${lang}.label`),
+              sources: sources.join(", "),
+            }),
+          );
+        }
 
         // All languages already resolved by FW/IaC selections — skip
         if (resolved.has("typescript") && resolved.has("python")) return undefined;
