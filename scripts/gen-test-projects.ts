@@ -199,7 +199,7 @@ const projects: [string, Partial<WizardAnswers>][] = [
 
   // ── Cross-layer combinations ──
   [
-    "24-vue-fastapi",
+    "23-vue-fastapi",
     {
       projectName: "vue-fastapi",
       frontend: "vue",
@@ -207,7 +207,7 @@ const projects: [string, Partial<WizardAnswers>][] = [
     },
   ],
   [
-    "25-nuxt-express",
+    "24-nuxt-express",
     {
       projectName: "nuxt-express",
       frontend: "nuxt",
@@ -215,7 +215,7 @@ const projects: [string, Partial<WizardAnswers>][] = [
     },
   ],
   [
-    "26-batch-aws-cdk",
+    "25-batch-aws-cdk",
     {
       projectName: "batch-aws-cdk",
       backend: "batch",
@@ -224,7 +224,7 @@ const projects: [string, Partial<WizardAnswers>][] = [
     },
   ],
   [
-    "27-aws-only",
+    "26-aws-only",
     {
       projectName: "aws-only",
       clouds: ["aws"],
@@ -234,7 +234,7 @@ const projects: [string, Partial<WizardAnswers>][] = [
 
   // ── Kitchen sink ──
   [
-    "28-kitchen-sink",
+    "27-kitchen-sink",
     {
       projectName: "kitchen-sink",
       frontend: "react",
