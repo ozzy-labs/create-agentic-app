@@ -4,6 +4,8 @@ import { DEFAULT_MCP_SERVERS } from "./shared.js";
 
 export const geminiPreset: Preset = {
   name: "gemini",
+  instructionFile: "GEMINI.md",
+  mcpConfigPath: { path: ".gemini/settings.json", format: "json" },
   files: readTemplateFiles("gemini"),
   merge: {
     ".gitignore": ".gemini/.env",

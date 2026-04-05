@@ -4,6 +4,8 @@ import { DEFAULT_MCP_SERVERS } from "./shared.js";
 
 export const claudeCodePreset: Preset = {
   name: "claude-code",
+  instructionFile: "CLAUDE.md",
+  mcpConfigPath: { path: ".mcp.json", format: "json" },
   files: readTemplateFiles("claude-code"),
   merge: {
     ".gitignore": ".claude/settings.local.json",

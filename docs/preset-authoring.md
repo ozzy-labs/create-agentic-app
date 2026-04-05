@@ -69,24 +69,17 @@ export const vuePreset: Preset = {
 };
 ```
 
-### 3. Register in generator.ts
+### 3. Register in presets/index.ts
 
-Add the preset to both `ALL_PRESETS` and `PRESET_ORDER`:
+Add the preset import and entry to `PRESET_ENTRIES` in `src/presets/index.ts`:
 
 ```typescript
-import { vuePreset } from "./presets/vue.js";
+import { vuePreset } from "./vue.js";
 
-const ALL_PRESETS: Record<string, Preset> = {
-  // ... existing presets
-  vue: vuePreset,
-};
-
-const PRESET_ORDER = [
-  "base", "typescript", "python",
-  "react", "nextjs", "vue",  // add in logical position
-  "fastapi", "express",
-  "aws", "azure", "gcp",
-  "cdk", "cloudformation", "terraform", "bicep",
+const PRESET_ENTRIES: ReadonlyArray<readonly [string, Preset]> = [
+  // ... existing entries
+  ["vue", vuePreset],  // add in logical position within the layer
+  // ...
 ];
 ```
 

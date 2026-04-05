@@ -4,6 +4,7 @@ import { DEFAULT_MCP_SERVERS } from "./shared.js";
 
 export const clinePreset: Preset = {
   name: "cline",
+  instructionFile: ".clinerules/project.md",
   files: readTemplateFiles("cline"),
   merge: {},
   mcpServers: { ...DEFAULT_MCP_SERVERS },

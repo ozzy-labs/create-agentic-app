@@ -4,6 +4,8 @@ import { DEFAULT_MCP_SERVERS } from "./shared.js";
 
 export const codexPreset: Preset = {
   name: "codex",
+  instructionFile: "AGENTS.md",
+  mcpConfigPath: { path: ".codex/config.toml", format: "toml" },
   files: readTemplateFiles("codex"),
   merge: {
     ".devcontainer/devcontainer.json": {
