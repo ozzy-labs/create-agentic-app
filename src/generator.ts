@@ -1,29 +1,6 @@
 import { buildCiWorkflow } from "./ci.js";
 import { expandMarkdown, formatMcpJson, formatMcpToml, mergeFile } from "./merge.js";
-import { amazonQPreset } from "./presets/amazon-q.js";
-import { awsPreset } from "./presets/aws.js";
-import { azurePreset } from "./presets/azure.js";
-import { basePreset } from "./presets/base.js";
-import { batchPreset } from "./presets/batch.js";
-import { bicepPreset } from "./presets/bicep.js";
-import { cdkPreset } from "./presets/cdk.js";
-import { claudeCodePreset } from "./presets/claude-code.js";
-import { clinePreset } from "./presets/cline.js";
-import { cloudformationPreset } from "./presets/cloudformation.js";
-import { codexPreset } from "./presets/codex.js";
-import { copilotPreset } from "./presets/copilot.js";
-import { cursorPreset } from "./presets/cursor.js";
-import { expressPreset } from "./presets/express.js";
-import { fastapiPreset } from "./presets/fastapi.js";
-import { gcpPreset } from "./presets/gcp.js";
-import { geminiPreset } from "./presets/gemini.js";
-import { nextjsPreset } from "./presets/nextjs.js";
-import { nuxtPreset } from "./presets/nuxt.js";
-import { pythonPreset } from "./presets/python.js";
-import { reactPreset } from "./presets/react.js";
-import { terraformPreset } from "./presets/terraform.js";
-import { typescriptPreset } from "./presets/typescript.js";
-import { vuePreset } from "./presets/vue.js";
+import { ALL_PRESETS, PRESET_ORDER } from "./presets/index.js";
 import { expandSetupScript } from "./setup.js";
 import type {
   FileWriter,
@@ -34,43 +11,6 @@ import type {
   WizardAnswers,
 } from "./types.js";
 import { buildResult } from "./utils.js";
-
-const ALL_PRESETS: Record<string, Preset> = {
-  base: basePreset,
-  typescript: typescriptPreset,
-  python: pythonPreset,
-  react: reactPreset,
-  nextjs: nextjsPreset,
-  vue: vuePreset,
-  nuxt: nuxtPreset,
-  fastapi: fastapiPreset,
-  express: expressPreset,
-  batch: batchPreset,
-  aws: awsPreset,
-  azure: azurePreset,
-  gcp: gcpPreset,
-  cdk: cdkPreset,
-  cloudformation: cloudformationPreset,
-  terraform: terraformPreset,
-  bicep: bicepPreset,
-  "claude-code": claudeCodePreset,
-  codex: codexPreset,
-  gemini: geminiPreset,
-  "amazon-q": amazonQPreset,
-  copilot: copilotPreset,
-  cline: clinePreset,
-  cursor: cursorPreset,
-};
-
-// Validate that all preset `requires` entries reference known presets (fail-fast at import time)
-for (const [name, preset] of Object.entries(ALL_PRESETS)) {
-  if (!preset.requires) continue;
-  for (const req of preset.requires) {
-    if (!(req in ALL_PRESETS)) {
-      throw new Error(`Preset "${name}" requires unknown preset "${req}"`);
-    }
-  }
-}
 
 /** IaC tools and the cloud providers they require. */
 const IAC_CLOUD_REQUIREMENTS: Record<string, { clouds: string[]; label: string }> = {
@@ -135,34 +75,6 @@ function collapseCdSection(sections: MarkdownSection[]): MarkdownSection[] {
   return remaining;
 }
 
-/** Canonical application order for presets. */
-const PRESET_ORDER = [
-  "base",
-  "typescript",
-  "python",
-  "react",
-  "nextjs",
-  "vue",
-  "nuxt",
-  "fastapi",
-  "express",
-  "batch",
-  "aws",
-  "azure",
-  "gcp",
-  "cdk",
-  "cloudformation",
-  "terraform",
-  "bicep",
-  "claude-code",
-  "codex",
-  "gemini",
-  "amazon-q",
-  "copilot",
-  "cline",
-  "cursor",
-];
-
 /** Resolve which presets to apply based on wizard answers, including dependency chains. */
 export function resolvePresets(answers: WizardAnswers): string[] {
   const selected = new Set<string>(["base"]);
@@ -173,12 +85,10 @@ export function resolvePresets(answers: WizardAnswers): string[] {
 
   if (answers.frontend !== "none") {
     selected.add(answers.frontend);
-    // TypeScript forcing is handled by each preset's `requires` chain
   }
 
   if (answers.backend !== "none") {
     selected.add(answers.backend);
-    // Language forcing is handled by each preset's `requires` chain
   }
 
   for (const cloud of answers.clouds) {
@@ -187,9 +97,6 @@ export function resolvePresets(answers: WizardAnswers): string[] {
 
   for (const iac of answers.iac) {
     selected.add(iac);
-    if (iac === "cdk") {
-      selected.add("typescript"); // CDK forces TypeScript
-    }
   }
 
   for (const agent of answers.agents) {
@@ -230,27 +137,6 @@ function replaceVariables(content: string, vars: Record<string, string>): string
   }
   return result;
 }
-
-// --- Agent config mappings ---
-
-const AGENT_MCP_FILES: Record<string, { path: string; format: "json" | "toml" }> = {
-  "claude-code": { path: ".mcp.json", format: "json" },
-  codex: { path: ".codex/config.toml", format: "toml" },
-  gemini: { path: ".gemini/settings.json", format: "json" },
-  "amazon-q": { path: ".amazonq/mcp.json", format: "json" },
-  copilot: { path: ".copilot/mcp-config.json", format: "json" },
-  cursor: { path: ".cursor/mcp.json", format: "json" },
-};
-
-const AGENT_INSTRUCTION_FILES: Record<string, string> = {
-  "claude-code": "CLAUDE.md",
-  codex: "AGENTS.md",
-  gemini: "GEMINI.md",
-  "amazon-q": ".amazonq/rules/project.md",
-  copilot: ".github/copilot-instructions.md",
-  cline: ".clinerules/project.md",
-  cursor: ".cursor/rules/project.mdc",
-};
 
 // --- Helper functions for generate() ---
 
@@ -317,11 +203,7 @@ function postProcessPackageJson(pkgContent: string, presets: Preset[]): string {
 }
 
 /** Collect MCP servers from all presets and write config files for active agents. */
-function distributeMcpServers(
-  allFiles: Map<string, string>,
-  presets: Preset[],
-  presetNames: string[],
-): void {
+function distributeMcpServers(allFiles: Map<string, string>, presets: Preset[]): void {
   const allMcpServers: Record<string, McpServerConfig> = {};
   for (const preset of presets) {
     if (preset.mcpServers) {
@@ -330,12 +212,13 @@ function distributeMcpServers(
   }
   if (Object.keys(allMcpServers).length === 0) return;
 
-  for (const name of presetNames) {
-    const config = AGENT_MCP_FILES[name];
-    if (config) {
+  for (const preset of presets) {
+    if (preset.mcpConfigPath) {
       allFiles.set(
-        config.path,
-        config.format === "toml" ? formatMcpToml(allMcpServers) : formatMcpJson(allMcpServers),
+        preset.mcpConfigPath.path,
+        preset.mcpConfigPath.format === "toml"
+          ? formatMcpToml(allMcpServers)
+          : formatMcpJson(allMcpServers),
       );
     }
   }
@@ -345,7 +228,6 @@ function distributeMcpServers(
 function expandMarkdownTemplates(
   allFiles: Map<string, string>,
   presets: Preset[],
-  presetNames: string[],
   vars: Record<string, string>,
 ): void {
   // Collect sections from all presets
@@ -360,9 +242,9 @@ function expandMarkdownTemplates(
   }
 
   // Distribute "agent-instructions" sections to each agent's instruction file
-  const instructionTargets = presetNames
-    .filter((name) => name in AGENT_INSTRUCTION_FILES)
-    .map((name) => AGENT_INSTRUCTION_FILES[name]);
+  const instructionTargets = presets
+    .filter((p) => p.instructionFile)
+    .map((p) => p.instructionFile as string);
   const agentSections = markdownSections.get("agent-instructions");
   if (agentSections) {
     for (const target of instructionTargets) {
@@ -496,10 +378,10 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   }
 
   // 4. Distribute MCP servers to agent config files
-  distributeMcpServers(allFiles, presets, presetNames);
+  distributeMcpServers(allFiles, presets);
 
   // 5. Expand Markdown templates
-  expandMarkdownTemplates(allFiles, presets, presetNames, vars);
+  expandMarkdownTemplates(allFiles, presets, vars);
 
   // 6. Generate .tflint.hcl (if terraform is selected)
   if (presetNames.includes("terraform")) {

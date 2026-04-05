@@ -43,6 +43,11 @@ export interface McpServerConfig {
   env?: Record<string, string>;
 }
 
+export interface McpConfigPath {
+  path: string;
+  format: "json" | "toml";
+}
+
 // --- Preset ---
 
 export interface Preset {
@@ -62,6 +67,10 @@ export interface Preset {
   conditionalDevDeps?: string[];
   /** MCP server definitions (distributed to agent config files by generator) */
   mcpServers?: Record<string, McpServerConfig>;
+  /** Path to agent-specific MCP config file (agent presets only) */
+  mcpConfigPath?: McpConfigPath;
+  /** Path to agent instruction file for Markdown section injection (agent presets only) */
+  instructionFile?: string;
 }
 
 // --- File I/O abstraction ---
