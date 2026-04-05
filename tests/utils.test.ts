@@ -2,7 +2,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { buildResult, createDiskWriter, createMemoryWriter } from "../src/utils.js";
+import {
+  buildResult,
+  createDiskWriter,
+  createMemoryWriter,
+  readTemplateFiles,
+} from "../src/utils.js";
 
 describe("createDiskWriter", () => {
   let tmpDir: string;
@@ -19,6 +24,13 @@ describe("createDiskWriter", () => {
 
     const written = fs.readFileSync(path.join(tmpDir, "sub/dir/hello.txt"), "utf-8");
     expect(written).toBe("world");
+  });
+});
+
+describe("readTemplateFiles", () => {
+  it("returns empty object for non-existent preset", () => {
+    const result = readTemplateFiles("non-existent-preset-xyz");
+    expect(result).toEqual({});
   });
 });
 
