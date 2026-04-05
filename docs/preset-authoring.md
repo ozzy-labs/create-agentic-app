@@ -27,8 +27,13 @@ interface Preset {
   ciSteps?: CiContribution;
   setupExtra?: string;
   conditionalDevDeps?: string[];  // devDeps removed if unused by scripts
+  mcpServers?: Record<string, McpServerConfig>;  // MCP servers (distributed to agent configs)
+  mcpConfigPath?: McpConfigPath;  // agent MCP config file path (agent presets only)
+  instructionFile?: string;       // agent instruction file path (agent presets only)
 }
 ```
+
+`mcpConfigPath` and `instructionFile` are used by **agent presets only**. The generator uses these fields to distribute MCP servers and markdown sections to each agent's config/instruction file.
 
 ## Step-by-Step: Adding a New Preset
 
@@ -98,6 +103,32 @@ Add tests following the 3-layer strategy (see [Testing](#testing)):
 ### 6. Update docs
 
 Update `docs/design.md` with the new preset details.
+
+## Agent Presets
+
+Agent presets use `instructionFile` and `mcpConfigPath` to tell the generator where to write their instruction and MCP config files:
+
+```typescript
+import { DEFAULT_MCP_SERVERS } from "./shared.js";
+
+export const exampleAgentPreset: Preset = {
+  name: "example-agent",
+  instructionFile: ".example/instructions.md",  // markdown section injection target
+  mcpConfigPath: { path: ".example/mcp.json", format: "json" },  // MCP config output
+  files: readTemplateFiles("example-agent"),
+  merge: {},
+  mcpServers: { ...DEFAULT_MCP_SERVERS },  // shared MCP servers (context7, fetch)
+  markdown: {
+    "agent-instructions": [],  // receives shared sections from all presets
+    "README.md": [],
+  },
+};
+```
+
+The generator automatically:
+
+- Distributes all collected MCP servers to `mcpConfigPath` files
+- Injects `agent-instructions` markdown sections into `instructionFile` targets
 
 ## Merge Contributions
 
