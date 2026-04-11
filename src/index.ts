@@ -5,8 +5,8 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
-import { runWizard } from "./cli.js";
-import { generate, validateAnswers } from "./generator.js";
+import { runApplyWizard, runWizard } from "./cli.js";
+import { generate, generateApply, validateAnswers } from "./generator.js";
 import { detectLocale, setLocale, t } from "./i18n/index.js";
 import { buildFileTree } from "./tree.js";
 import { createDiskWriter } from "./utils.js";
@@ -24,11 +24,46 @@ function run(cmd: string, args: string[], cwd: string): Promise<string> {
   });
 }
 
+async function runApplyMode(dryRun: boolean): Promise<void> {
+  const outDir = process.cwd();
+  const answers = await runApplyWizard();
+
+  const result = generateApply(answers);
+  const fileList = result.fileList();
+
+  if (fileList.length === 0) {
+    p.log.warn(t("apply.noFiles"));
+    p.outro(pc.green(t("outro")));
+    return;
+  }
+
+  if (dryRun) {
+    const tree = buildFileTree(fileList);
+    p.log.info(
+      `${t("dryRun.preview", { count: fileList.length })}\n\n${pc.dim(tree)}\n\n${pc.yellow(t("dryRun.noWrite"))}`,
+    );
+    p.outro(pc.green(t("outro")));
+    return;
+  }
+
+  const s = p.spinner();
+  s.start(t("apply.start"));
+
+  const writer = createDiskWriter(outDir);
+  for (const file of fileList) {
+    writer.write(file, result.readText(file));
+  }
+
+  s.stop(t("apply.stop", { count: fileList.length }));
+  p.outro(pc.green(t("outro")));
+}
+
 async function main(): Promise<void> {
   const { values, positionals } = parseArgs({
     args: process.argv.slice(2),
     options: {
       lang: { type: "string" },
+      apply: { type: "boolean", default: false },
       "dry-run": { type: "boolean", default: false },
       "no-install": { type: "boolean", default: false },
     },
@@ -39,8 +74,15 @@ async function main(): Promise<void> {
   const langFlag = typeof values.lang === "string" ? values.lang : undefined;
   setLocale(detectLocale(langFlag));
 
+  const applyMode = values.apply === true;
   const dryRun = values["dry-run"] === true;
   const noInstall = values["no-install"] === true;
+
+  // --- Apply mode: add agent config to existing project ---
+  if (applyMode) {
+    await runApplyMode(dryRun);
+    return;
+  }
 
   const positionalArg = positionals[0];
   const defaultName = positionalArg ? path.basename(positionalArg) : undefined;

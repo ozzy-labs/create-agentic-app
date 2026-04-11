@@ -1,9 +1,11 @@
+import path from "node:path";
 import { ACTIONS } from "./action-versions.js";
 import { buildCiWorkflow } from "./ci.js";
 import { expandMarkdown, formatMcpJson, formatMcpToml, mergeFile } from "./merge.js";
 import { ALL_PRESETS, PRESET_ORDER } from "./presets/index.js";
 import { expandSetupScript } from "./setup.js";
 import type {
+  ApplyAnswers,
   FileWriter,
   GenerateResult,
   MarkdownSection,
@@ -618,4 +620,53 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
   }
 
   return buildResult(allFiles);
+}
+
+/** File path prefixes/patterns that are agent-related output for --apply mode. */
+const APPLY_FILE_PATTERNS = [
+  "CLAUDE.md",
+  "AGENTS.md",
+  "GEMINI.md",
+  ".claude/",
+  ".amazonq/",
+  ".github/copilot-instructions.md",
+  ".clinerules/",
+  ".cursor/",
+  ".mcp.json",
+];
+
+/** Check if a file path matches agent-related output. */
+function isApplyFile(filePath: string): boolean {
+  return APPLY_FILE_PATTERNS.some(
+    (pattern) => filePath === pattern || filePath.startsWith(pattern),
+  );
+}
+
+/**
+ * Generate agent-related files only (for --apply mode).
+ * Uses the full generator internally, then filters to agent output.
+ */
+export function generateApply(answers: ApplyAnswers): GenerateResult {
+  // Build full WizardAnswers with agent + cloud selections only
+  const fullAnswers: WizardAnswers = {
+    projectName: path.basename(process.cwd()),
+    frontend: "none",
+    backend: "none",
+    clouds: answers.clouds,
+    iac: [],
+    languages: [],
+    agents: answers.agents,
+  };
+
+  const result = generate(fullAnswers);
+
+  // Filter to agent-related files only
+  const filteredFiles = new Map<string, string>();
+  for (const file of result.fileList()) {
+    if (isApplyFile(file)) {
+      filteredFiles.set(file, result.readText(file));
+    }
+  }
+
+  return buildResult(filteredFiles);
 }

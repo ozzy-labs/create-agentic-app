@@ -85,5 +85,12 @@
     "pnpmInstallFailed": "pnpm install に失敗しました（スキップ）",
     "manualHint": "手動で実行してください: cd {{path}} && pnpm install"
   },
-  "outro": "完了！Happy coding."
+  "outro": "完了！Happy coding.",
+  "apply": {
+    "intro": "create-agentic-dev --apply",
+    "cloudsHint": "MCP サーバー配布に使用",
+    "noFiles": "生成するファイルがありません。エージェントを1つ以上選択してください。",
+    "start": "エージェント設定を生成中...",
+    "stop": "{{count}} ファイルを生成しました"
+  }
 }

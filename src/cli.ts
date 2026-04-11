@@ -1,7 +1,7 @@
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { t } from "./i18n/index.js";
-import type { WizardAnswers } from "./types.js";
+import type { ApplyAnswers, WizardAnswers } from "./types.js";
 
 /** Build IaC options filtered by selected cloud providers. */
 function buildIacOptions(clouds: Array<"aws" | "azure" | "gcp">): Array<{
@@ -269,5 +269,77 @@ export async function runWizard(defaultName?: string): Promise<WizardAnswers> {
     iac: (answers.iac ?? []) as WizardAnswers["iac"],
     languages: (answers.languages ?? []) as WizardAnswers["languages"],
     agents: (answers.agents ?? []) as WizardAnswers["agents"],
+  };
+}
+
+export async function runApplyWizard(): Promise<ApplyAnswers> {
+  p.intro(pc.bold(t("apply.intro")));
+
+  const answers = await p.group(
+    {
+      clouds: () =>
+        p.multiselect({
+          message: `${t("wizard.clouds.message")} ${pc.dim(t("apply.cloudsHint"))}`,
+          options: [
+            { value: "aws" as const, label: t("wizard.clouds.aws.label") },
+            { value: "azure" as const, label: t("wizard.clouds.azure.label") },
+            { value: "gcp" as const, label: t("wizard.clouds.gcp.label") },
+          ],
+          required: false,
+        }),
+      agents: () =>
+        p.multiselect({
+          message: `${t("wizard.agents.message")} ${pc.dim(t("wizard.agents.hint"))}`,
+          options: [
+            {
+              value: "claude-code" as const,
+              label: t("wizard.agents.claude-code.label"),
+              hint: t("wizard.agents.claude-code.hint"),
+            },
+            {
+              value: "codex" as const,
+              label: t("wizard.agents.codex.label"),
+              hint: t("wizard.agents.codex.hint"),
+            },
+            {
+              value: "gemini" as const,
+              label: t("wizard.agents.gemini.label"),
+              hint: t("wizard.agents.gemini.hint"),
+            },
+            {
+              value: "amazon-q" as const,
+              label: t("wizard.agents.amazon-q.label"),
+              hint: t("wizard.agents.amazon-q.hint"),
+            },
+            {
+              value: "copilot" as const,
+              label: t("wizard.agents.copilot.label"),
+              hint: t("wizard.agents.copilot.hint"),
+            },
+            {
+              value: "cline" as const,
+              label: t("wizard.agents.cline.label"),
+              hint: t("wizard.agents.cline.hint"),
+            },
+            {
+              value: "cursor" as const,
+              label: t("wizard.agents.cursor.label"),
+              hint: t("wizard.agents.cursor.hint"),
+            },
+          ],
+          required: false,
+        }),
+    },
+    {
+      onCancel: () => {
+        p.cancel(t("cancel"));
+        process.exit(0);
+      },
+    },
+  );
+
+  return {
+    clouds: (answers.clouds ?? []) as ApplyAnswers["clouds"],
+    agents: (answers.agents ?? []) as ApplyAnswers["agents"],
   };
 }

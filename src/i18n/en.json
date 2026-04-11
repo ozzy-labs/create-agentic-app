@@ -85,5 +85,12 @@
     "pnpmInstallFailed": "pnpm install failed (skipped)",
     "manualHint": "Run manually: cd {{path}} && pnpm install"
   },
-  "outro": "Done! Happy coding."
+  "outro": "Done! Happy coding.",
+  "apply": {
+    "intro": "create-agentic-dev --apply",
+    "cloudsHint": "Used for MCP server distribution",
+    "noFiles": "No files to generate. Please select at least one agent.",
+    "start": "Generating agent configuration...",
+    "stop": "Generated {{count}} files"
+  }
 }
