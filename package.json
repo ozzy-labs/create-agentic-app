@@ -60,6 +60,11 @@
     "smol-toml": "^1.4.0",
     "yaml": "^2.7.0"
   },
+  "pnpm": {
+    "overrides": {
+      "vite": "^8.0.8"
+    }
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@commitlint/cli": "^20.0.0",
