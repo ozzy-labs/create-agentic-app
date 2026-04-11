@@ -136,6 +136,22 @@ export function resolvePresets(answers: WizardAnswers): string[] {
   return PRESET_ORDER.filter((p) => selected.has(p));
 }
 
+/** Resolve the primary dev server port based on frontend selection. */
+function resolveDevPort(frontend: WizardAnswers["frontend"]): string {
+  switch (frontend) {
+    case "react":
+    case "vue":
+    case "sveltekit":
+      return "5173";
+    case "astro":
+      return "4321";
+    case "nextjs":
+    case "nuxt":
+    case "none":
+      return "3000";
+  }
+}
+
 /** Template variable replacement in file contents. */
 function replaceVariables(content: string, vars: Record<string, string>): string {
   let result = content;
@@ -509,6 +525,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
 
   const vars: Record<string, string> = {
     projectName: answers.projectName,
+    devPort: resolveDevPort(answers.frontend),
     actionsCheckout: ACTIONS.checkout,
     actionsMise: ACTIONS.mise,
     actionsCache: ACTIONS.cache,

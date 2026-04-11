@@ -167,6 +167,7 @@ export const cdkPreset: Preset = {
       { name: "CDK synth", run: "cd infra && npx cdk synth" },
     ],
     lintSteps: [
+      { name: "Typecheck (infra tsc)", run: "cd infra && tsc --noEmit" },
       { name: "Lint (cfn-lint)", run: "cfn-lint" },
       { name: "Security (Trivy IaC: CDK)", run: "trivy config --exit-code 1 infra/cdk.out/" },
     ],

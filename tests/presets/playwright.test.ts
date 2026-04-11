@@ -74,6 +74,12 @@ describe("generate (playwright)", () => {
     expect(pkg).toContain("test-app-e2e");
     expect(pkg).not.toContain("{{projectName}}");
   });
+
+  it("uses default port (3000) in playwright.config.ts when no frontend", () => {
+    const config = result.readText("e2e/playwright.config.ts");
+    expect(config).toContain("localhost:3000");
+    expect(config).not.toContain("{{devPort}}");
+  });
 });
 
 describe("generate (react + playwright)", () => {
@@ -91,5 +97,31 @@ describe("generate (react + playwright)", () => {
     expect(claude).toContain("React");
     expect(claude).toContain("Playwright");
     expect(claude).not.toContain("<!-- SECTION:");
+  });
+
+  it("uses Vite port (5173) in playwright.config.ts for React", () => {
+    const config = result.readText("e2e/playwright.config.ts");
+    expect(config).toContain("localhost:5173");
+    expect(config).not.toContain("localhost:3000");
+  });
+});
+
+describe("generate (nextjs + playwright)", () => {
+  const answers = makeAnswers({ frontend: "nextjs", testing: ["playwright"] });
+  const result = generate(answers);
+
+  it("uses Next.js port (3000) in playwright.config.ts", () => {
+    const config = result.readText("e2e/playwright.config.ts");
+    expect(config).toContain("localhost:3000");
+  });
+});
+
+describe("generate (astro + playwright)", () => {
+  const answers = makeAnswers({ frontend: "astro", testing: ["playwright"] });
+  const result = generate(answers);
+
+  it("uses Astro port (4321) in playwright.config.ts", () => {
+    const config = result.readText("e2e/playwright.config.ts");
+    expect(config).toContain("localhost:4321");
   });
 });
