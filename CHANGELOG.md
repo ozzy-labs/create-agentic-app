@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/ozzy-labs/create-agentic-dev/compare/create-agentic-dev-v0.1.2...create-agentic-dev-v0.1.3) (2026-04-11)
+
+
+### Bug Fixes
+
+* ensure blank line before headings in merged markdown sections ([#153](https://github.com/ozzy-labs/create-agentic-dev/issues/153)) ([438d928](https://github.com/ozzy-labs/create-agentic-dev/commit/438d92878c878c8121808780e941b048613ab471))
+
 ## [0.1.2](https://github.com/ozzy-labs/create-agentic-dev/compare/create-agentic-dev-v0.1.1...create-agentic-dev-v0.1.2) (2026-04-05)
 
 
