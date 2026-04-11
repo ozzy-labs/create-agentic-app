@@ -59,6 +59,7 @@ describe("generate (cdk)", () => {
     const stepNames = steps.map((s) => s.name);
     expect(stepNames).toContain("Install infra dependencies");
     expect(stepNames).toContain("CDK synth");
+    expect(stepNames).toContain("Typecheck (infra tsc)");
     expect(stepNames).toContain("Lint (cfn-lint)");
     expect(stepNames).toContain("Test (infra CDK)");
     const synthIdx = stepNames.indexOf("CDK synth");
