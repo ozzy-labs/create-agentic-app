@@ -199,12 +199,15 @@ function postProcessPackageJson(pkgContent: string, presets: Preset[]): string {
       key.startsWith("lint:") &&
       key !== "lint:all" &&
       key !== "lint:fix" &&
+      key !== "lint:mypy" &&
       key !== "lint:secrets" &&
       key !== "lint:trivy"
     ) {
       lintParts.push(`pnpm run ${key}`);
     }
   }
+  // mypy runs after ruff (lint:python) to avoid format-related false positives
+  if (scripts["lint:mypy"]) lintParts.push("pnpm run lint:mypy");
   if (scripts["lint:secrets"]) lintParts.push("pnpm run lint:secrets");
   if (scripts["lint:trivy"]) lintParts.push("pnpm run lint:trivy");
   if (lintParts.length > 0) {

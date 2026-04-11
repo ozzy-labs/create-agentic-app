@@ -73,6 +73,15 @@ describe("pairwise: typescript + python", () => {
     expect(scripts["lint:all"]).toContain("pnpm run lint:secrets");
   });
 
+  it("lint:all runs lint:python (ruff) before lint:mypy", () => {
+    const pkg = result.readJson("package.json") as Record<string, unknown>;
+    const scripts = pkg.scripts as Record<string, string>;
+    const lintAll = scripts["lint:all"];
+    const pythonIdx = lintAll.indexOf("lint:python");
+    const mypyIdx = lintAll.indexOf("lint:mypy");
+    expect(pythonIdx, "lint:python should appear before lint:mypy").toBeLessThan(mypyIdx);
+  });
+
   it("merges both language settings into VSCode settings", () => {
     const settings = result.readJson(".vscode/settings.json") as Record<string, unknown>;
     expect(settings["editor.defaultFormatter"]).toBe("biomejs.biome");
