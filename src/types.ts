@@ -10,6 +10,12 @@ export interface WizardAnswers {
   agents: Array<"claude-code" | "codex" | "gemini" | "amazon-q" | "copilot" | "cline" | "cursor">;
 }
 
+/** Answers for --apply mode (agent-only wizard). */
+export interface ApplyAnswers {
+  clouds: WizardAnswers["clouds"];
+  agents: WizardAnswers["agents"];
+}
+
 // --- Markdown template ---
 
 export interface MarkdownSection {
