@@ -37,6 +37,12 @@ export const playwrightPreset: Preset = {
         content: "- Playwright: tests in `e2e/`, use Page Object Model for complex pages",
       },
     ],
+    ".agents/skills/test/SKILL.md": [
+      {
+        placeholder: "<!-- SECTION:TEST_STEPS -->",
+        content: "1. `cd e2e && pnpm test` で E2E テスト実行（Playwright）",
+      },
+    ],
     "README.md": [
       {
         placeholder: "<!-- SECTION:DIR_STRUCTURE -->",
