@@ -1,12 +1,14 @@
 import type { Preset } from "../types.js";
-import { readTemplateFiles } from "../utils.js";
+import { buildEnglishInstruction } from "./instruction-template.js";
 import { DEFAULT_MCP_SERVERS } from "./shared.js";
 
 export const codexPreset: Preset = {
   name: "codex",
   instructionFile: "AGENTS.md",
   mcpConfigPath: { path: ".codex/config.toml", format: "toml" },
-  files: readTemplateFiles("codex"),
+  files: {
+    "AGENTS.md": buildEnglishInstruction("AGENTS.md", "via Codex MCP settings"),
+  },
   merge: {
     ".devcontainer/devcontainer.json": {
       remoteEnv: {
