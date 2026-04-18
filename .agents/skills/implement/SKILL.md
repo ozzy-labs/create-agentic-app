@@ -1,106 +1,66 @@
 ---
 name: implement
-description: Create a feature branch and implement changes based on a GitHub issue or text instruction
+description: Issue または指示をもとに、ブランチ作成・実装計画・コード変更を行う。Issue 番号またはテキスト指示を受け取る。
 ---
 
-# implement - Branch Creation and Implementation from Issue or Instruction
+# implement - Issue/指示からブランチ作成・実装
 
-Parse a GitHub issue or direct instruction, create a feature branch, plan the implementation, and execute code changes.
+Issue 読解または直接指示をもとに、ブランチ作成・実装計画・コード変更までを行う。
 
-## Workflow
+## 入力
 
-### Step 1: Parse Input and Gather Requirements
+- **Issue 番号の場合**（`#N` または数字のみ）: `gh issue view <N>` で内容を取得し、要件を整理する
+- **テキスト指示の場合**: そのまま要件として扱う
+- **引数なしの場合**: 何を実装するか確認する
 
-Parse `$ARGUMENTS` to determine what to implement.
+## 手順
 
-**If an issue number is provided** (`#N` or a plain number):
+### 1. ブランチ作成
 
-1. Run `gh issue view <N>` to fetch the issue content
-2. Extract requirements from the title, body, and labels
-3. Present the understood requirements to the user for confirmation
+1. `git status` と `git branch --show-current` で現在の状態を確認する
+2. 要件から `<type>/<slug>` 形式のブランチ名を決定する
+3. `git checkout -b <branch-name>` でブランチを作成する
 
-**If a text instruction is provided:**
+既にフィーチャーブランチにいる場合は、そのブランチで作業を続けるか確認する。
 
-- Use it directly as the requirement
+### 2. 実装計画
 
-**If no arguments are provided:**
+1. コードベースを調査する
+   - 関連ファイルの特定
+   - 既存の実装パターンの把握
+   - 影響範囲の確認
+2. 実装計画を提示する:
+   - 変更するファイルとその内容
+   - 影響範囲
+3. 計画の承認を得てから実装に進む
 
-- Ask the user: "What should be implemented? (Issue number or description)"
+### 3. 実装
 
-**On `gh` CLI errors:**
+承認された計画に従い、コード変更を実行する。各ファイルの変更完了時に進捗を報告する。
 
-- Authentication error: Instruct the user to run `gh auth login` and abort
-- Issue not found: Ask the user to verify the issue number and abort
+### 4. 動作確認
 
-### Step 2: Create Branch
+実装完了後、以下の検証を行う:
 
-1. Run `git status` and `git branch --show-current` to check the current state
-2. Determine a branch name in `<type>/<slug>` format based on the requirements
-   - Examples: `feat/add-auth`, `fix/cdk-synth-error`
-3. Run `git checkout -b <branch-name>` to create the branch
+- ビルドが成功するか
+- 型チェックが通るか
+- テストが通るか
+- lint エラーがないか
 
-**If already on a feature branch:**
+エラーが出た場合はその場で修正し、再度確認する。
 
-- Ask the user whether to continue working on the current branch
-
-### Step 3: Implementation Plan
-
-1. Investigate the codebase to understand the existing structure:
-   - Identify related files
-   - Understand existing implementation patterns
-   - Assess the scope of impact
-2. Present the implementation plan to the user:
-
-```markdown
-## Implementation Plan
-
-### Changes
-1. `src/index.ts` - Add routing to entry point
-2. `infra/lib/app-stack.ts` - Define Lambda function resource
-3. `tests/test_handler.py` - Add handler tests
-
-### Impact
-- Adds resources to existing AppStack (no impact on existing functionality)
-
-Approve?
-```
-
-1. Wait for user approval before proceeding: "Implement this plan", "Modify the plan", or "Cancel"
-
-**Important:** Do not begin code changes without plan approval.
-
-### Step 4: Implementation
-
-Execute code changes according to the approved plan:
-
-1. **Code changes:** Implement the planned modifications
-2. **Test creation:** Create tests as needed
-3. **Progress reports:** Briefly report completion of each file change
-
-If the plan needs to change during implementation, consult the user.
-
-### Step 5: Completion Report and Next Actions
-
-Report implementation completion:
+### 5. 完了報告
 
 ```text
-Implementation complete:
-  Branch: feat/add-auth
-  Changed files:
-    M src/index.ts
-    A infra/lib/auth-stack.ts
-    A tests/test_auth.py
+実装完了:
+  ブランチ: <branch-name>
+  変更ファイル:
+    A path/to/new-file
+    M path/to/modified-file
 ```
 
-Then ask the user which action to take next:
+## 注意事項
 
-- **Run lint, test, commit, and create PR** - Read `.agents/skills/ship/SKILL.md` and follow its workflow
-- **Run linters only** - Read `.agents/skills/lint/SKILL.md` and follow its workflow
-- **Continue with additional changes** - End this skill
-
-## Important Notes
-
-- **Never read or stage `.env` files**
-- **If `gh` CLI is not authenticated, display the error and abort**
-- **Do not begin code changes without plan approval**
-- **When adding or changing linters/formatters, follow the checklist in [`docs/adding-tools.md`](../../../docs/adding-tools.md)**
+- .env ファイルは読み取り・ステージングしない
+- `gh` CLI が未認証の場合はエラーメッセージを表示して中断する
+- 実装計画の承認なしにコード変更を開始しない

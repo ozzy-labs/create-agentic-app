@@ -1,61 +1,42 @@
 ---
 name: ship
-description: Run lint, test, commit, and create PR in a single integrated pipeline
+description: lint・コミット・PR 作成を一括実行する。変更に対して lint → コミット → PR 作成を順に実行する統合パイプライン。
 ---
 
-# ship - Lint, Test, Commit, and PR Pipeline
+# ship - lint・コミット・PR を一括実行
 
-Run lint, test, commit, and PR creation sequentially as an integrated pipeline.
+変更に対して lint → コミット → PR 作成を順に実行する統合パイプライン。いずれかのステップで失敗した場合は中断し、エラー内容を報告する。
 
-If any step fails, abort and report the error.
+## 手順
 
-**Important:** When reading child skill files, execute **only their workflow steps**. Ignore any "Next Actions" sections in the child skills.
+### Step 1: lint
 
-## Workflow
+1. `git status` で変更ファイルを特定する
+2. `.agents/skills/lint-rules/SKILL.md` を参照し、対象ファイルの lint・フォーマット・型チェックを実行する
+3. エラーがある場合は報告して中断する
 
-### Step 1: Lint
+### Step 2: commit
 
-Read `.agents/skills/lint/SKILL.md` and follow its workflow to run all linters and formatters.
+1. `git status` で変更ファイルの一覧を取得する
+2. 変更ファイルを個別に `git add <file>` でステージする。`.env` ファイルはステージングしない
+3. `.agents/skills/commit-conventions/SKILL.md` を参照し、Conventional Commits に従いコミットメッセージを生成する
+4. `git commit -m "<message>"` でコミットする
 
-**On failure:** Report the errors and suggest fixing them, then re-running this skill. Abort.
+変更がない場合、既にコミット済みの未プッシュコミットがあれば Step 3 に進む。なければ終了する。
 
-### Step 2: Test
+### Step 3: pr
 
-Read `.agents/skills/test/SKILL.md` and follow its workflow to run all tests.
+1. `git branch --show-current` で現在のブランチを確認する（main の場合は中断）
+2. `git push -u origin <branch>` でリモートにプッシュする
+3. `gh pr view` で既存 PR を確認する
+   - 既存 PR がない場合: `gh pr create --title "<タイトル>" --body "<本文>"` で作成
+   - 既存 PR がある場合: プッシュのみ（PR は自動更新）
 
-**On failure:** Report the failures and suggest fixing them, then re-running this skill. Abort.
-
-### Step 3: Commit
-
-Read `.agents/skills/commit/SKILL.md` and follow the staging and commit workflow (ignore its "Next Actions" section).
-
-**If there are no changes:** If there are already unpushed commits, proceed to Step 4. Otherwise, end.
-
-### Step 4: PR
-
-Push and create a PR:
-
-1. Run `git branch --show-current` to check the current branch
-2. Run `git push -u origin <branch>` to push to the remote
-3. Run `gh pr view` to check for an existing PR
-   - **If no existing PR:** Run `gh pr create --title "<title>" --body "<body>"` to create a new PR. Use the first line of the most recent commit message as the title
-   - **If a PR already exists:** Push only (the PR updates automatically)
-4. Record the PR URL
-
-### Step 5: Completion Report
-
-Report the results:
+### Step 4: 完了報告
 
 ```text
-Done:
-  Commit: abc1234 feat: add authentication
-  Branch: feat/add-auth
-  PR: https://github.com/owner/repo/pull/123
+完了:
+  コミット: abc1234 feat: add blog post
+  ブランチ: feat/add-blog
+  PR: <PR URL>
 ```
-
-## Next Actions
-
-After reporting completion, ask the user which action to take next:
-
-- **Review the PR** - Read `.agents/skills/review/SKILL.md` and follow its workflow
-- **Merge the PR** - Run `gh pr merge --squash --delete-branch` and report the result

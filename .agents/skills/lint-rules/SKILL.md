@@ -1,38 +1,40 @@
 ---
 name: lint-rules
-description: Linter and formatter command reference table by file extension. Referenced by other skills.
+description: 拡張子別リンター・フォーマッターのコマンド対応表と型チェックルール。他スキルから参照される。
 ---
 
-# lint-rules - Linter and Formatter Command Reference
+# lint-rules - リンター・フォーマッターコマンド対応表
 
-This is a reference skill. It is not invoked directly by the user; other skills read this file when running linters.
+lint スキルから参照される。対象ファイルの拡張子に応じて以下のコマンドを実行する。
 
-## Command Table by Extension
+## コマンド対応表
 
-Run the appropriate linters and formatters in auto-fix mode based on the file extensions of changed files:
+| 拡張子 | コマンド |
+|--------|---------|
+| `.ts`, `.tsx`, `.js`, `.jsx`, `.json` | `biome check --write <file>` |
+| `.md` | `markdownlint-cli2 --fix <file>` |
+| `.yaml`, `.yml` | `yamlfmt <file> && yamllint -c .yamllint.yaml <file>` |
+| `.toml` | `taplo format <file>` |
+| `.sh` | `shfmt -w <file> && shellcheck <file>` |
 
-| Extension / File | Command |
-|------------------|---------|
-| `.sh` | `shellcheck <files>` then `shfmt -w <files>` |
-| `.toml` | `taplo format <files>` |
-| `.md` | `markdownlint-cli2 <files>` |
-| `.yaml`, `.yml` | `yamlfmt <files>` then `yamllint -c .yamllint.yaml <files>` |
-| `Dockerfile*` | `dockerfmt <files>` then `hadolint --failure-threshold warning <files>` |
-| `.github/workflows/*.yaml` | `actionlint` |
+## 型チェック
 
-## Security Scan
+TypeScript / JavaScript / Astro ファイルが変更された場合、lint 完了後に型チェックを実行する:
 
-- Run `gitleaks detect --no-banner` for secret detection
+```bash
+pnpm run typecheck
+```
 
-## Handling Results
+## セキュリティ
 
-**When auto-fixes are applied:**
+全ファイルを対象に Gitleaks でシークレット検出を実行する:
 
-- Report the fixed files to the user
-- Fixes are already applied to the working tree; proceed to the next step
+```bash
+gitleaks detect --no-banner
+```
 
-**When there are unfixable errors:**
+全ファイルを対象に Trivy で脆弱性・シークレットスキャンを実行する:
 
-- Report the errors to the user
-- Abort the calling skill
-- **Do not manually fix code** (accept auto-fixes from linters/formatters, but leave decisions about type errors and similar issues to the user)
+```bash
+trivy fs --scanners vuln,secret --exit-code 1 --no-progress .
+```
