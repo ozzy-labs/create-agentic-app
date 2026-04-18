@@ -5,10 +5,22 @@ RUN apt-get update \
         build-essential \
         curl \
         git \
+        fd-find \
+        ffmpeg \
+        fzf \
+        jq \
+        ripgrep \
+        tesseract-ocr \
+        tesseract-ocr-jpn \
+        tree \
+        unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install as vscode user
 USER vscode
+
+# Install Claude Code
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Install mise
 RUN curl --proto '=https' --tlsv1.2 -fsSL https://mise.run | sh
@@ -35,6 +47,14 @@ COPY --chown=vscode:vscode .mise.toml /home/vscode/.mise.toml
 RUN ~/.local/bin/mise trust /home/vscode/.mise.toml \
     && ~/.local/bin/mise install \
     && rm /home/vscode/.mise.toml
+
+# Install AI agent CLIs (npm available after mise installs Node.js)
+RUN eval "$(/home/vscode/.local/bin/mise activate bash)" \
+    && npm install -g @openai/codex @google/gemini-cli
+
+# Install markitdown (PDF/Office/image/audio → Markdown via uv tool)
+RUN eval "$(/home/vscode/.local/bin/mise activate bash)" \
+    && uv tool install "markitdown[all]"
 
 # Switch back to root for remaining setup
 USER root

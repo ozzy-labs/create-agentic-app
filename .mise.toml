@@ -2,6 +2,7 @@
 # Runtime & package managers
 node = "24"
 pnpm = "10"
+uv = "0.11"
 
 # Linters & formatters
 biome = "2"
@@ -13,12 +14,16 @@ taplo = "0.10"
 yamlfmt = "0.21"
 actionlint = "1"
 gitleaks = "8"
+trivy = "0.69"
+"pipx:mdformat" = "0.7"
 
-# Git hooks
+# CLI utilities for AI-assisted development
+ast-grep = "0.42"
+yq = "4"
+just = "1"
+zoxide = "0.9"
+
+# Git hooks & commit conventions
 lefthook = "2"
-
-# AI agent CLIs
-"npm:@anthropic-ai/claude-code" = "latest"
-"npm:@openai/codex" = "latest"
-"npm:@github/copilot" = "latest"
-"npm:@google/gemini-cli" = "latest"
+"npm:@commitlint/cli" = "20"
+"npm:@commitlint/config-conventional" = "20"

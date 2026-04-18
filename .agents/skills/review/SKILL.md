@@ -1,110 +1,66 @@
 ---
 name: review
-description: Review code changes or a pull request and report issues with severity levels
+description: コード変更や PR をレビューし、問題点・改善案を報告する。PR 番号または空（ワーキングツリー）を受け取る。
 ---
 
-# review - Code Review
+# review - コードレビュー
 
-Review code changes or a pull request and report issues, improvements, and suggestions.
+コードの変更や PR をレビューし、問題点・改善案を報告する。
 
-## Workflow
+## 入力
 
-### Step 1: Parse Input
+- **PR 番号が指定された場合**（`#N` または数字のみ）:
+  - `gh pr diff <N>` で差分を取得
+  - `gh pr view <N>` で PR の説明を取得
+- **引数なしの場合:**
+  - `git diff` でワーキングツリーの変更を取得
+  - 変更がなければ `git diff main...HEAD` でブランチ差分を取得
+  - それでも変更がなければ、レビュー対象がない旨を伝えて終了する
 
-Parse `$ARGUMENTS` to determine the review target:
+## 手順
 
-- **If a PR number is provided** (`#N` or a plain number):
-  - Run `gh pr diff <N>` to fetch the diff
-  - Run `gh pr view <N>` to fetch the PR description
-- **If no arguments are provided:**
-  - Run `git diff` to get working tree changes
-  - If no changes, run `git diff main...HEAD` to get branch diff
-  - If still no changes, inform the user there is nothing to review and end
+### 1. コンテキスト収集
 
-### Step 2: Gather Context
+差分に含まれるファイルの周辺コードを確認し、変更の意図と影響範囲を把握する:
 
-Read surrounding code for files included in the diff to understand intent and impact:
+- 変更されたコンポーネント・ページの全体像を確認
+- インポート元やエクスポート先を確認
+- 変更に関連するドキュメントファイルを特定する
 
-- Review the full functions/classes that were changed
-- Check import sources and export consumers
-- Check whether test files exist for the changed code
-- Identify related documentation files (CLAUDE.md, README.md, SKILL.md, JSDoc/docstrings, etc.)
+### 2. レビュー実施
 
-### Step 3: Perform Review
+以下の観点で差分を分析する:
 
-Analyze the diff from the following perspectives:
+- **正確性:** ロジックの誤り、エッジケース
+- **セキュリティ:** インジェクション、機密情報の露出
+- **パフォーマンス:** 不要なレンダリング、画像最適化
+- **コーディング規約:** コーディング規約との整合性
+- **ドキュメント整合性:** コード変更がドキュメントに正しく反映されているか
 
-- **Correctness:** Logic errors, edge cases, off-by-one errors
-- **Security:** Injection vulnerabilities, authentication/authorization flaws, secret exposure
-- **Performance:** Unnecessary loops, N+1 queries, memory leaks
-- **Coding conventions:** Alignment with the project's coding standards
-- **Tests:** Presence and adequacy of test coverage
-- **Documentation consistency:**
-  - Whether code changes are accurately reflected in documentation (CLAUDE.md, README.md, SKILL.md, etc.)
-  - Whether documentation descriptions (commands, APIs, configuration, structure) match the actual implementation
-  - Whether new, changed, or removed features/commands are reflected in documentation
-  - Whether code comments and JSDoc/docstrings are consistent with the implementation
-  - When linters/formatters are added or changed, whether all items in the [`docs/adding-tools.md`](../../../docs/adding-tools.md) checklist have been updated
+### 3. レポート出力
 
-### Step 4: Report
+3 段階の深刻度で分類する:
 
-Present findings in the following format:
+- **Critical** — 修正が必要（バグ、セキュリティ脆弱性）
+- **Warning** — 修正を推奨（パフォーマンス問題、規約違反）
+- **Info** — 任意の改善提案（リファクタリング、可読性向上）
 
-#### Summary
-
-Provide an overall assessment in 1-2 sentences.
-
-#### Issues
-
-Classify findings into 3 severity levels:
-
-- **Critical** - Must fix (bugs, security vulnerabilities)
-- **Warning** - Should fix (performance issues, convention violations)
-- **Info** - Optional improvements (refactoring, readability)
-
-Each issue includes:
+各指摘には以下を含める:
 
 ```text
-[Critical] filename:line-number
-  Problem: <description of the issue>
-  Reason: <why this is a problem>
-  Suggestion: <specific fix recommendation>
+[Critical] ファイル名:行番号
+  問題: <問題の説明>
+  理由: <なぜ問題なのか>
+  提案: <具体的な修正案>
 ```
 
-#### Improvement Suggestions
-
-For larger improvement suggestions, include concrete code examples.
-
-#### Conclusion
-
-Summarize the issue counts:
+レポート末尾にサマリーを記載:
 
 ```text
-Review results:
-  Critical: 0
-  Warning:  2
-  Info:     1
+レビュー結果:
+  Critical: N 件
+  Warning:  N 件
+  Info:     N 件
 ```
 
-**For PR reviews:** Post the full report (Summary through Conclusion) as a comment on the PR using `gh pr comment <N> --body "<report>"`. Also display the report in the agent output (output to both).
-
-### Step 5: Next Actions
-
-Ask the user which action to take next. Adjust suggestions based on findings:
-
-**For PR reviews:**
-
-- **Fix the issues** (when issues exist) - Fix code based on the findings. After fixing, ask again:
-  - **Re-review** - Return to Step 1
-  - **Commit and push** - Read `.agents/skills/commit/SKILL.md`, follow its workflow, then read `.agents/skills/pr/SKILL.md` and follow its workflow
-  - **Continue with additional changes** - End this skill
-- **Proceed as-is** - End this skill
-
-**For local change reviews:**
-
-- **Fix the issues** (when issues exist) - Fix code based on the findings. After fixing, ask again:
-  - **Re-review** - Return to Step 1
-  - **Run lint, test, commit, and create PR** - Read `.agents/skills/ship/SKILL.md` and follow its workflow
-  - **Continue with additional changes** - End this skill
-- **Run lint, test, commit, and create PR** - Read `.agents/skills/ship/SKILL.md` and follow its workflow
-- **Proceed as-is** - End this skill
+PR レビューの場合、レポート全体を `gh pr comment <N> --body "<レポート>"` で PR にコメントとして投稿する。

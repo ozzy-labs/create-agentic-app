@@ -1,68 +1,48 @@
 ---
 name: pr
-description: Push committed changes and create or update a pull request
+description: コミット済みの変更をリモートにプッシュし、PR を作成・更新する。
 ---
 
-# pr - Push and Create PR
+# pr - プッシュ＆PR 作成
 
-Push committed changes to the remote and create or update a pull request.
+コミット済みの変更をリモートにプッシュし、PR を作成・更新する。
 
-**This skill handles PR creation only.** Review is offered as a next action after completion.
+## 前提条件
 
-## Workflow
+- main ブランチからの直接 push は行わない
+- 未コミットの変更がある場合は先にコミットする
+- プッシュ対象のコミットがない場合は終了する
 
-### Step 1: Check Current State
+## 手順
 
-Run the following commands to understand the current state:
+### 1. 状態確認
 
-- `git branch --show-current` to check the current branch
-- `git status` to check for uncommitted changes
-- `git log --oneline origin/<branch>..HEAD 2>/dev/null || git log --oneline -5` to check for unpushed commits
+- `git branch --show-current` で現在のブランチを確認
+- `git status` で未コミットの変更を確認
+- `git log --oneline origin/<branch>..HEAD 2>/dev/null || git log --oneline -5` で未プッシュのコミットを確認
 
-**If on the main branch:** Warn that pushing directly to main is not allowed. Suggest creating a feature branch with the implement skill or manually with `git checkout -b <branch>`, then end.
+### 2. プッシュ＆PR 作成
 
-**If there are uncommitted changes:** Suggest committing first with the commit skill, then end.
+1. `git push -u origin <branch>` でリモートにプッシュする
+2. PR の作成:
+   - `gh pr view` で既存 PR を確認する
+   - **既存 PR がない場合:** `gh pr create --title "<タイトル>" --body "<本文>"` で PR を作成する。タイトルは直近のコミットメッセージの 1 行目を使用する
+   - **既存 PR がある場合:** プッシュのみ（PR は自動更新される）
 
-**If there are no commits to push:** Inform the user that there are no commits to push and end.
-
-### Step 2: Push and Create PR
-
-1. Run `git push -u origin <branch>` to push to the remote
-2. Create or update the PR:
-   - Run `gh pr view` to check for an existing PR
-   - **If no existing PR:** Run `gh pr create --title "<title>" --body "<body>"` to create a new PR. Use the first line of the most recent commit message as the title
-   - **If a PR already exists:** Push only (the PR updates automatically)
-3. Report the PR URL to the user
-
-PR body format:
+PR の本文フォーマット:
 
 ```markdown
 ## Summary
 
-- <bullet points describing the changes>
+- <変更内容の箇条書き>
 
-Closes #N <!-- Only when originating from an issue. Infer issue number from branch name or commits -->
-
-## Test plan
-
-- [ ] TypeScript tests pass
-- [ ] Python tests pass
-- [ ] CDK tests pass
+Closes #N <!-- Issue 起点の場合のみ -->
 ```
 
-### Step 3: Completion Report
-
-Report the results:
+### 3. 完了報告
 
 ```text
-Done:
-  Branch: feat/add-auth
-  PR: https://github.com/owner/repo/pull/123
+完了:
+  ブランチ: <branch-name>
+  PR: <PR URL>
 ```
-
-## Next Actions
-
-After reporting completion, ask the user which action to take next:
-
-- **Review the PR** - Read `.agents/skills/review/SKILL.md` and follow its workflow
-- **Merge the PR** - Run `gh pr merge --squash --delete-branch` and report the result

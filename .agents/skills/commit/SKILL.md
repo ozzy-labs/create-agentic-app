@@ -1,55 +1,36 @@
 ---
 name: commit
-description: Stage changes and create a Conventional Commits compliant commit
+description: 変更をステージし、Conventional Commits でコミットする。プッシュや PR 作成は行わない。
 ---
 
-# commit - Stage and Commit
+# commit - ステージング＆コミット
 
-Stage changes and create a commit following Conventional Commits. This skill does not push or create a PR.
+変更をステージし、Conventional Commits でコミットする。プッシュや PR 作成は行わない。
 
-## Workflow
+## 手順
 
-### Step 1: Check Current State
+### 1. 状態確認
 
-Run the following commands to understand the current state:
+以下のコマンドで現在の状態を把握する:
 
-- `git status` to list changed files
-- `git diff` to review unstaged changes
-- `git diff --staged` to review staged changes
-- `git log --oneline -5` to review recent commit history
+- `git status` で変更ファイルの一覧を取得
+- `git diff` でステージされていない変更を確認
+- `git diff --staged` でステージ済みの変更を確認
+- `git log --oneline -5` で直近のコミット履歴を確認
 
-**If there are no changes:** Inform the user that there is nothing to commit and end.
+変更がない場合、コミットする変更がない旨を伝えて終了する。
 
-Present the list of changed files to the user:
+### 2. ステージング＆コミット
 
-```text
-Changed files:
-  M src/index.ts
-  A infra/lib/new-stack.ts
-  M tests/test_placeholder.py
-```
+1. **ステージング:** 変更ファイルを個別に `git add <file>` でステージする。`.env` ファイルはステージングしない
+2. **コミットメッセージ生成:** `.agents/skills/commit-conventions/SKILL.md` を参照し、ルールに従いメッセージを生成する
+3. **コミット実行:** `git commit -m "<message>"`
 
-### Step 2: Stage and Commit
+### 3. 完了報告
 
-1. **Stage files:** Add changed files individually with `git add <file>`. Never stage `.env` files
-2. **Generate commit message:** Read `.agents/skills/commit-conventions/SKILL.md` and follow its rules to generate the message
-3. **Execute commit:** Run `git commit -m "<message>"`
-   - Lefthook hooks (commitlint on commit-msg, linters on pre-commit) run automatically
-
-### Step 3: Completion Report
-
-Report the result:
+実行結果を報告する:
 
 ```text
-Done:
-  Commit: abc1234 feat: add authentication
+完了:
+  コミット: abc1234 feat: add blog post
 ```
-
-## Next Actions
-
-After reporting completion, ask the user which action to take next:
-
-- **Run tests** - Read `.agents/skills/test/SKILL.md` and follow its workflow
-- **Create a PR** - Read `.agents/skills/pr/SKILL.md` and follow its workflow
-- **Run lint, test, commit, and create PR** - Read `.agents/skills/ship/SKILL.md` and follow its workflow
-- **Continue with additional changes** - End this skill
