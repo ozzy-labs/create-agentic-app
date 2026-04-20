@@ -1,4 +1,4 @@
-# create-agentic-dev
+# create-agentic-app
 
 Scaffold an AI-agent-native development environment with interactive presets.
 
@@ -7,7 +7,7 @@ Companion to [agentic-dev-template](https://github.com/ozzy-labs/agentic-dev-tem
 ## Quick Start
 
 ```bash
-npm create @ozzylabs/agentic-dev my-app
+npm create @ozzylabs/agentic-app my-app
 cd my-app
 bash scripts/setup.sh
 ```

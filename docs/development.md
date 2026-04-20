@@ -9,8 +9,8 @@
 ## Development Setup
 
 ```bash
-git clone https://github.com/ozzy-labs/create-agentic-dev.git
-cd create-agentic-dev
+git clone https://github.com/ozzy-labs/create-agentic-app.git
+cd create-agentic-app
 mise install
 pnpm install
 ```
@@ -77,7 +77,7 @@ After making changes to the CLI or templates, verify the generated output by ins
 
    ```bash
    cd /tmp
-   create-agentic-dev my-test-app
+   create-agentic-app my-test-app
    ```
 
 4. Verify the generated project:
@@ -88,7 +88,7 @@ After making changes to the CLI or templates, verify the generated output by ins
 5. Clean up when done:
 
    ```bash
-   pnpm unlink --global create-agentic-dev
+   pnpm unlink --global create-agentic-app
    rm -rf /tmp/my-test-app
    ```
 

@@ -2,9 +2,9 @@
 
 ## Overview
 
-`create-agentic-dev` is a CLI tool that scaffolds AI-agent-native development projects with interactive presets.
+`create-agentic-app` is a CLI tool that scaffolds AI-agent-native development projects with interactive presets.
 
-- **Distribution**: npm package (`npm create @ozzylabs/agentic-dev`)
+- **Distribution**: npm package (`npm create @ozzylabs/agentic-app`)
 - **Prompt library**: @clack/prompts
 - **Architecture**: Preset Composition (composable presets merged into final project)
 - **Relationship**: Companion to [agentic-dev-template](https://github.com/ozzy-labs/agentic-dev-template)
@@ -465,7 +465,7 @@ GCP ────────→ gcloud CLI
 ### Directory layout
 
 ```text
-create-agentic-dev/
+create-agentic-app/
 ├── src/
 │   ├── index.ts              # Entry point (CLI startup)
 │   ├── cli.ts                # Wizard (@clack/prompts)
@@ -602,12 +602,12 @@ No arg parser needed — only `process.argv[2]` for project name.
 
 ```json
 {
-  "name": "@ozzylabs/create-agentic-dev",
+  "name": "@ozzylabs/create-agentic-app",
   "version": "0.1.0",
   "description": "Scaffold an AI-agent-native development environment with interactive presets",
   "type": "module",
   "bin": {
-    "create-agentic-dev": "./dist/index.mjs"
+    "create-agentic-app": "./dist/index.mjs"
   },
   "files": [
     "dist",
@@ -747,9 +747,9 @@ npm create @ozzylabs/agentic-dev [my-app]
 
 | Item | Value |
 |------|-------|
-| Package name | `@ozzylabs/create-agentic-dev` |
+| Package name | `@ozzylabs/create-agentic-app` |
 | Registry | npm public |
-| Usage | `npm create @ozzylabs/agentic-dev` / `npx @ozzylabs/create-agentic-dev` |
+| Usage | `npm create @ozzylabs/agentic-app` / `npx @ozzylabs/create-agentic-app` |
 | Release trigger | GitHub Release (tag `v*`) → auto publish |
 | Provenance | Enabled (`--provenance`) for supply chain security |
 
