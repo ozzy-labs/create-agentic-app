@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ozzy-labs/create-agentic-dev/compare/create-agentic-app-v0.2.0...create-agentic-app-v0.2.1) (2026-04-20)
+
+
+### Bug Fixes
+
+* **ci:** disable trivy in release workflow mise-action ([#209](https://github.com/ozzy-labs/create-agentic-dev/issues/209)) ([bbd12fb](https://github.com/ozzy-labs/create-agentic-dev/commit/bbd12fb8d7341038e84a7e5deeb5d0df087656bb))
+
 ## [0.2.0](https://github.com/ozzy-labs/create-agentic-dev/compare/create-agentic-app-v0.1.2...create-agentic-app-v0.2.0) (2026-04-20)
 
 
