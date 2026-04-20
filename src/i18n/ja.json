@@ -1,5 +1,5 @@
 {
-  "intro": "create-agentic-dev",
+  "intro": "create-agentic-app",
   "cancel": "操作がキャンセルされました。",
   "wizard": {
     "projectName": {
@@ -92,7 +92,7 @@
   },
   "outro": "完了！Happy coding.",
   "apply": {
-    "intro": "create-agentic-dev --apply",
+    "intro": "create-agentic-app --apply",
     "cloudsHint": "MCP サーバー配布に使用",
     "noFiles": "生成するファイルがありません。エージェントを1つ以上選択してください。",
     "start": "エージェント設定を生成中...",

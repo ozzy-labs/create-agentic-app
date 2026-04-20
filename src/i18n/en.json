@@ -1,5 +1,5 @@
 {
-  "intro": "create-agentic-dev",
+  "intro": "create-agentic-app",
   "cancel": "Operation cancelled.",
   "wizard": {
     "projectName": {
@@ -92,7 +92,7 @@
   },
   "outro": "Done! Happy coding.",
   "apply": {
-    "intro": "create-agentic-dev --apply",
+    "intro": "create-agentic-app --apply",
     "cloudsHint": "Used for MCP server distribution",
     "noFiles": "No files to generate. Please select at least one agent.",
     "start": "Generating agent configuration...",

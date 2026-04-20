@@ -1,6 +1,6 @@
 # Preset Authoring Guide
 
-This guide explains how to create and modify presets for `create-agentic-dev`.
+This guide explains how to create and modify presets for `create-agentic-app`.
 
 ## Overview
 

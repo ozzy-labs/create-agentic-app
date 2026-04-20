@@ -57,11 +57,11 @@ npm publish --access public --provenance false --//registry.npmjs.org/:_authToke
 
 npmjs.com でパッケージの Trusted Publishing を設定する手順（初回のみ）:
 
-1. <https://www.npmjs.com/package/@ozzylabs/create-agentic-dev/access> にアクセス
+1. <https://www.npmjs.com/package/@ozzylabs/create-agentic-app/access> にアクセス
 2. **Trusted Publisher** セクションで **GitHub Actions** を選択
 3. 以下を入力:
    - **Repository owner**: `ozzy-labs`
-   - **Repository name**: `create-agentic-dev`
+   - **Repository name**: `create-agentic-app`
    - **Workflow filename**: `release.yaml`
    - **Environment name**: （空欄）
 4. 保存する
