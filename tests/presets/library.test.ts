@@ -59,13 +59,16 @@ describe("generate (library)", () => {
     expect(manifest["."]).toBe("0.0.0");
   });
 
-  it("release workflow uses pinned action versions", () => {
+  it("release workflow uses pinned action versions (commit SHAs, not tags)", () => {
     const wf = result.readText(".github/workflows/release.yaml");
-    expect(wf).toContain("googleapis/release-please-action");
+    expect(wf).toContain("googleapis/release-please-action@");
     expect(wf).toContain("actions/checkout@");
     expect(wf).toContain("jdx/mise-action@");
     expect(wf).not.toContain("{{actionsCheckout}}");
     expect(wf).not.toContain("{{actionsMise}}");
+    expect(wf).not.toContain("{{actionsReleasePlease}}");
+    // SHAs are pinned (40 hex chars after @), not tag references like @v4
+    expect(wf).not.toMatch(/release-please-action@v\d/);
   });
 
   it("library is excluded from app-only generation", () => {

@@ -574,6 +574,7 @@ export function generate(answers: WizardAnswers, options: GenerateOptions = {}):
     actionsAwsCredentials: ACTIONS.awsCredentials,
     actionsAzureLogin: ACTIONS.azureLogin,
     actionsGcpAuth: ACTIONS.gcpAuth,
+    actionsReleasePlease: ACTIONS.releasePlease,
   };
 
   // 1. Collect all owned files

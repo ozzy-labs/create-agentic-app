@@ -423,6 +423,28 @@ describe("CLI Wizard E2E", () => {
         agents: ["claude-code"],
       });
     });
+
+    it("library projectType skips frontend/backend/clouds/iac and forces typescript", async () => {
+      setupMock({
+        projectName: "my-lib",
+        projectType: "library",
+        agents: ["claude-code"],
+      });
+
+      const result = await runWizard();
+
+      expect(result).toEqual({
+        projectName: "my-lib",
+        projectType: "library",
+        frontend: "none",
+        backend: "none",
+        clouds: [],
+        iac: [],
+        languages: ["typescript"],
+        testing: [],
+        agents: ["claude-code"],
+      });
+    });
   });
 
   describe("project name validation", () => {
