@@ -87,11 +87,13 @@ describe.skipIf(!allAvailable)("smoke: external @ozzylabs/preset-* E2E", () => {
   });
 
   it("resolves requires across external presets without error", async () => {
-    // Loading -web (or -cli) without -base should still succeed if -web declares
-    // `requires: ["base"]` and -base is loaded alongside, or fail clearly otherwise.
-    // Either way, supplying both must not throw at generation time.
+    // -web and -cli declare `requires: ["base"]` (per ADR-0017), so loading all
+    // three together must validate cleanly and generate without throwing.
     const presets = await loadExternalPresets([PRESET_BASE, PRESET_WEB, PRESET_CLI], REPO_ROOT);
-    expect(presets.map((p) => p.name)).toEqual(expect.arrayContaining(presets.map((p) => p.name)));
+    expect(presets).toHaveLength(3);
+
+    const names = presets.map((p) => p.name);
+    expect(new Set(names).size).toBe(3);
 
     expect(() => generate(makeAnswers(), { extraPresets: presets })).not.toThrow();
   });
