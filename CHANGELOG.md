@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.2](https://github.com/ozzy-labs/create-agentic-app/compare/create-agentic-app-v0.2.1...create-agentic-app-v0.2.2) (2026-04-26)
+
+
+### Features
+
+* add library preset for npm package scaffolds (Phase 1) ([#223](https://github.com/ozzy-labs/create-agentic-app/issues/223)) ([5b60ed8](https://github.com/ozzy-labs/create-agentic-app/commit/5b60ed884fd7a3caf9f8b4cca235f6242e51bde2))
+* **skills-sync:** migrate to adapter-aware sync via @ozzylabs/skills ([#225](https://github.com/ozzy-labs/create-agentic-app/issues/225)) ([0250595](https://github.com/ozzy-labs/create-agentic-app/commit/0250595898e695b320982561a21a0c59be767f80))
+* **skills-sync:** opt-in @ozzylabs/skills as PoC consumer ([#217](https://github.com/ozzy-labs/create-agentic-app/issues/217)) ([3d600ed](https://github.com/ozzy-labs/create-agentic-app/commit/3d600ede1c1e8dc606b5e1cb788e461caffd5c69))
+* support external preset packages via dynamic import ([#212](https://github.com/ozzy-labs/create-agentic-app/issues/212)) ([03fb284](https://github.com/ozzy-labs/create-agentic-app/commit/03fb284448a1982a4e32287397913019734d977a))
+
+
+### Bug Fixes
+
+* **security:** override vulnerable postcss ([#229](https://github.com/ozzy-labs/create-agentic-app/issues/229)) ([5d2b38f](https://github.com/ozzy-labs/create-agentic-app/commit/5d2b38f24c89f7db29b761d11bb1da2a187394fb)), closes [#228](https://github.com/ozzy-labs/create-agentic-app/issues/228)
+* **skills-sync:** update skills_commit to adapter-structured dist ([#233](https://github.com/ozzy-labs/create-agentic-app/issues/233)) ([bf689d1](https://github.com/ozzy-labs/create-agentic-app/commit/bf689d1078538f5e28565641d992a04dadfe353b))
+
 ## [0.2.1](https://github.com/ozzy-labs/create-agentic-dev/compare/create-agentic-app-v0.2.0...create-agentic-app-v0.2.1) (2026-04-20)
 
 
