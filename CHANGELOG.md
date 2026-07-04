@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/ozzy-labs/create-agentic-app/compare/create-agentic-app-v0.2.4...create-agentic-app-v0.2.5) (2026-07-04)
+
+
+### Bug Fixes
+
+* gate pre-commit trivy on HIGH/CRITICAL severity ([#275](https://github.com/ozzy-labs/create-agentic-app/issues/275)) ([cb090c6](https://github.com/ozzy-labs/create-agentic-app/commit/cb090c6e22df89276d6a447022cc99fa52ed65b4))
+
 ## [0.2.4](https://github.com/ozzy-labs/create-agentic-app/compare/create-agentic-app-v0.2.3...create-agentic-app-v0.2.4) (2026-05-06)
 
 
